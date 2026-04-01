@@ -19,9 +19,18 @@ router.post('/image', authenticate, requireAdminOrEditor, upload.single('image')
   if (!req.file) { res.status(400).json({ error: 'No file provided' }); return; }
 
   if (!process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME === 'your_cloud_name') {
-    // Mock upload for dev
-    const mockUrl = `https://picsum.photos/seed/${Date.now()}/800/600`;
-    res.json({ url: mockUrl, publicId: `mock_${Date.now()}`, mock: true });
+    // Local upload for dev
+    const fs = require('fs');
+    const path = require('path');
+    const uploadDir = path.join(__dirname, '../../public/uploads');
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+    
+    const ext = req.file.originalname.split('.').pop();
+    const filename = `local_${Date.now()}.${ext}`;
+    fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
+    
+    const localUrl = `${req.protocol}://${req.get('host')}/api/upload/local/${filename}`;
+    res.json({ url: localUrl, publicId: filename, mock: true });
     return;
   }
 
@@ -33,6 +42,13 @@ router.post('/image', authenticate, requireAdminOrEditor, upload.single('image')
   });
 
   res.json({ url: result.secure_url, publicId: result.public_id });
+});
+
+// Serve the local images
+router.get('/local/:filename', (req, res) => {
+  const path = require('path');
+  const filepath = path.join(__dirname, '../../public/uploads', req.params.filename);
+  res.sendFile(filepath);
 });
 
 export default router;

@@ -26,7 +26,7 @@ app.use(
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com'],
+        imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com', 'http://localhost:5000', 'http://localhost:3000'],
         connectSrc: ["'self'"],
         fontSrc: ["'self'", 'https://fonts.googleapis.com'],
         frameSrc: ["'none'"],
