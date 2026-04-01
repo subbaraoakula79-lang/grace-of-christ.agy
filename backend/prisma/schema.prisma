@@ -1,0 +1,122 @@
+// This is your Prisma schema file
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String
+  email         String     @unique
+  password      String
+  role          String     @default("EDITOR") // Enums Role not supported in SQLite
+  totpSecret    String?
+  totpEnabled   Boolean    @default(false)
+  refreshToken  String?
+  lastLoginAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  date        DateTime
+  time        String
+  location    String   @default("Grace of Christ Church")
+  imageUrl    String?
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("events")
+}
+
+model Sermon {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  videoUrl    String
+  thumbnailUrl String?
+  speaker     String
+  date        DateTime
+  duration    String?
+  tags        String   @default("[]") // String[] not supported in SQLite, storing as JSON string
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("sermons")
+}
+
+model GalleryImage {
+  id          String   @id @default(cuid())
+  imageUrl    String
+  publicId    String   // Cloudinary public_id
+  caption     String?
+  category    String?
+  createdAt   DateTime @default(now())
+
+  @@map("gallery")
+}
+
+model Donation {
+  id            String         @id @default(cuid())
+  donorName     String
+  email         String
+  phone         String
+  amount        Float          // Decimal not supported in SQLite like Postgres
+  currency      String         @default("INR")
+  paymentMethod String
+  receiptId     String         @unique
+  razorpayOrderId  String?
+  razorpayPaymentId String?
+  mockPaymentId    String?
+  status        String         @default("PENDING") // Enum DonationStatus
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("donations")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("contact_messages")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String   // e.g. "CREATE_EVENT", "DELETE_IMAGE", "VIEW_DONATIONS"
+  resource   String   // e.g. "Event", "Gallery", "Donation"
+  resourceId String?
+  metadata   String?  // Json type not supported in SQLite, storing as JSON string
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
