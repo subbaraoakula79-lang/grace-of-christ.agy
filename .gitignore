@@ -1,0 +1,14 @@
+backend/
+  node_modules/
+  dist/
+  .env
+
+frontend/
+  node_modules/
+  .next/
+  .env.local
+
+# Common
+*.log
+.DS_Store
+Thumbs.db
