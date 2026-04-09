@@ -55,39 +55,39 @@ export const authAPI = {
 
 export const donationsAPI = {
   createOrder: (amount: number) => api.post('/donations/order', { amount }),
-  submit: (data: any) => api.post('/donations', data),
+  submit: (data: Record<string, unknown>) => api.post('/donations', data),
   getReceipt: (receiptId: string) => api.get(`/donations/receipt/${receiptId}`),
-  list: (params?: any) => api.get('/donations', { params }),
+  list: (params?: Record<string, unknown>) => api.get('/donations', { params }),
   stats: () => api.get('/donations/stats'),
   pdfUrl: (receiptId: string) =>
     `${API_URL}/donations/receipt/${receiptId}/pdf`,
 };
 
 export const eventsAPI = {
-  list: (params?: any) => api.get('/events', { params }),
+  list: (params?: Record<string, unknown>) => api.get('/events', { params }),
   get: (id: string) => api.get(`/events/${id}`),
-  create: (data: any) => api.post('/events', data),
-  update: (id: string, data: any) => api.put(`/events/${id}`, data),
+  create: (data: Record<string, unknown>) => api.post('/events', data),
+  update: (id: string, data: Record<string, unknown>) => api.put(`/events/${id}`, data),
   delete: (id: string) => api.delete(`/events/${id}`),
 };
 
 export const sermonsAPI = {
-  list: (params?: any) => api.get('/sermons', { params }),
+  list: (params?: Record<string, unknown>) => api.get('/sermons', { params }),
   get: (id: string) => api.get(`/sermons/${id}`),
-  create: (data: any) => api.post('/sermons', data),
-  update: (id: string, data: any) => api.put(`/sermons/${id}`, data),
+  create: (data: Record<string, unknown>) => api.post('/sermons', data),
+  update: (id: string, data: Record<string, unknown>) => api.put(`/sermons/${id}`, data),
   delete: (id: string) => api.delete(`/sermons/${id}`),
 };
 
 export const galleryAPI = {
-  list: (params?: any) => api.get('/gallery', { params }),
-  add: (data: any) => api.post('/gallery', data),
+  list: (params?: Record<string, unknown>) => api.get('/gallery', { params }),
+  add: (data: Record<string, unknown>) => api.post('/gallery', data),
   delete: (id: string) => api.delete(`/gallery/${id}`),
 };
 
 export const contactAPI = {
-  submit: (data: any) => api.post('/contact', data),
-  list: (params?: any) => api.get('/contact', { params }),
+  submit: (data: Record<string, unknown>) => api.post('/contact', data),
+  list: (params?: Record<string, unknown>) => api.get('/contact', { params }),
   markRead: (id: string) => api.patch(`/contact/${id}/read`),
   delete: (id: string) => api.delete(`/contact/${id}`),
 };
@@ -95,7 +95,7 @@ export const contactAPI = {
 export const reportsAPI = {
   summary: () => api.get('/reports/summary'),
   csvUrl: (params?: { from?: string; to?: string }) => {
-    const search = params ? `?${new URLSearchParams(params as any)}` : '';
+    const search = params ? `?${new URLSearchParams(params as Record<string, string>)}` : '';
     return `${API_URL}/reports/donations/csv${search}`;
   },
 };

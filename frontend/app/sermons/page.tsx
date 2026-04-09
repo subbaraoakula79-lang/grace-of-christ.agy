@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -100,7 +99,7 @@ export default function SermonsPage() {
                         {s.speaker} · {new Date(s.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
                       </div>
                       {s.description && (
-                        <p style={{ fontSize: '0.85rem', color: 'var(--cream-dim)', lineHeight: 1.6, marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as any}>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--cream-dim)', lineHeight: 1.6, marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}>
                           {s.description}
                         </p>
                       )}

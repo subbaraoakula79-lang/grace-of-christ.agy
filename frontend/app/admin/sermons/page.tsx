@@ -27,6 +27,7 @@ export default function AdminSermonsPage() {
     const data = await res.json();
     setSermons(data.sermons || []);
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { fetchSermons(); }, [fetchSermons]);
@@ -53,7 +54,7 @@ export default function AdminSermonsPage() {
     fetchSermons();
   };
 
-  const F = (k: keyof typeof form, v: any) => setForm(f => ({ ...f, [k]: v }));
+  const F = (k: keyof typeof form, v: Sermon[keyof Sermon]) => setForm(f => ({ ...f, [k]: v }));
 
   return (
     <div>

@@ -125,7 +125,7 @@ export default function AboutPage() {
           </div>
           <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative' }}>
             <div style={{ position: 'absolute', left: '80px', top: 0, bottom: 0, width: 1, background: 'linear-gradient(180deg, transparent, rgba(212,175,55,0.4), transparent)' }} />
-            {timeline.map((t, i) => (
+            {timeline.map((t) => (
               <div key={t.year} style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', alignItems: 'flex-start' }}>
                 <div style={{ minWidth: '72px', textAlign: 'right', fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)', paddingTop: '0.15rem' }}>{t.year}</div>
                 <div style={{ position: 'relative' }}>

@@ -13,13 +13,7 @@ interface Event {
   isPublished: boolean;
 }
 
-const categoryColors: Record<string, string> = {
-  Worship: '#7B5EA7',
-  Special: '#D4AF37',
-  Youth: '#22c55e',
-  "Women's": '#C9848A',
-  Outreach: '#3B82F6',
-};
+
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);

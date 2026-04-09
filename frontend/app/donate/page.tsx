@@ -29,7 +29,7 @@ export default function DonatePage() {
     notes: '',
   });
 
-  const setField = (k: keyof typeof form, v: any) => setForm(f => ({ ...f, [k]: v }));
+  const setField = (k: keyof typeof form, v: string | number) => setForm(f => ({ ...f, [k]: v }));
 
   const finalAmount = form.customAmount ? parseFloat(form.customAmount) : form.amount;
 
@@ -75,8 +75,8 @@ export default function DonatePage() {
       if (!donateRes.ok) throw new Error(data.error || 'Donation failed');
 
       router.push(`/donate/receipt/${data.receiptId}`);
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       setLoading(false);
     }
   };

@@ -29,6 +29,7 @@ export default function AdminDonationsPage() {
     setLoading(false);
   }, [page, search]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchDonations(); }, [fetchDonations]);
 
   const downloadPDF = (receiptId: string) => {

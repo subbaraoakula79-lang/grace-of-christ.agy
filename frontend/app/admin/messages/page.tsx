@@ -23,6 +23,7 @@ export default function AdminMessagesPage() {
     setLoading(false);
   }, [unread]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetch_messages(); }, [fetch_messages]);
 
   const markRead = async (id: string) => {

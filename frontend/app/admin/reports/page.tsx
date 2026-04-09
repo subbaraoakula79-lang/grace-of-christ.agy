@@ -1,16 +1,19 @@
 'use client';
 import { useEffect, useState } from 'react';
 
+interface ReportStats { totalDonations: number; totalRevenue: number; totalEvents: number; totalSermons: number; }
+
 export default function AdminReportsPage() {
   const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<ReportStats | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('goc_access_token');
     fetch(`${API}/reports/summary`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json()).then(setStats).catch(console.error);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const downloadCSV = () => {

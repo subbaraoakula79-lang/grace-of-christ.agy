@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 const phrases = ['Welcome to Grace of Christ', 'A Place of Worship', 'A Place of Hope', 'A Place of Love'];
 
@@ -26,8 +26,10 @@ export default function HeroSection() {
         setCharIdx(c => c - 1);
       }, 28);
     } else if (deleting && charIdx === 0) {
-      setDeleting(false);
-      setPhraseIdx(p => (p + 1) % phrases.length);
+      timer = setTimeout(() => {
+        setDeleting(false);
+        setPhraseIdx(p => (p + 1) % phrases.length);
+      }, 0);
     }
     return () => clearTimeout(timer);
   }, [charIdx, deleting, phraseIdx]);

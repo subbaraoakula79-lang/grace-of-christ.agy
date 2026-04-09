@@ -16,7 +16,7 @@ const navItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -24,7 +24,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const token = localStorage.getItem('goc_access_token');
     const u = localStorage.getItem('goc_user');
     if (!token || !u) { router.push('/admin/login'); return; }
-    setUser(JSON.parse(u));
+    const parsed = JSON.parse(u) as { name: string; role: string };
+    setTimeout(() => setUser(parsed), 0);
   }, [pathname, router]);
 
   if (pathname === '/admin/login') return <>{children}</>;

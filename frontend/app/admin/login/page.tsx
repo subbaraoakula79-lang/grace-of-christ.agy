@@ -32,8 +32,8 @@ export default function AdminLoginPage() {
       localStorage.setItem('goc_access_token', data.accessToken);
       localStorage.setItem('goc_user', JSON.stringify(data.user));
       router.push('/admin/dashboard');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
       setLoading(false);
     }
   };

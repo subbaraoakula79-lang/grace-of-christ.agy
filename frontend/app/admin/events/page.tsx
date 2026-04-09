@@ -26,6 +26,7 @@ export default function AdminEventsPage() {
     const data = await res.json();
     setEvents(data.events || []);
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
@@ -52,7 +53,7 @@ export default function AdminEventsPage() {
     fetchEvents();
   };
 
-  const F = (k: keyof typeof form, v: any) => setForm(f => ({ ...f, [k]: v }));
+  const F = (k: keyof typeof form, v: Event[keyof Event]) => setForm(f => ({ ...f, [k]: v }));
 
   return (
     <div>

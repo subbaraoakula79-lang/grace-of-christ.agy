@@ -23,6 +23,7 @@ export default function AdminGalleryPage() {
     const data = await res.json();
     setImages(data.images || []);
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { fetchImages(); }, [fetchImages]);

@@ -8,7 +8,7 @@ const ministries = [
   { icon: '🎵', title: 'Worship Ministry', desc: 'Leading hearts into the presence of God through music and praise.' },
   { icon: '👨‍👩‍👧‍👦', title: 'Family Ministry', desc: 'Strengthening marriages, parenting, and family bonds in biblical truth.' },
   { icon: '🌱', title: 'Youth Ministry', desc: 'Raising up the next generation for purpose, identity, and kingdom impact.' },
-  { icon: '📖', title: "Women's Ministry", desc: 'Empowering women to walk in their God-given calling and community.' },
+  { icon: '📖', title: "Women\u2019s Ministry", desc: 'Empowering women to walk in their God-given calling and community.' },
   { icon: '🤝', title: 'Outreach Ministry', desc: 'Serving the poor, preaching the gospel, and transforming communities.' },
 ];
 
@@ -87,7 +87,7 @@ export default function HomePage() {
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🙏</div>
           <div className="section-label" style={{ justifyContent: 'center' }}>Support the Church</div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3.2rem)', fontWeight: 700, marginBottom: '1rem' }}>
-            Give to <span className="text-gradient-gold">God's Kingdom</span>
+            Give to <span className="text-gradient-gold">God&apos;s Kingdom</span>
           </h2>
           <p style={{ color: 'var(--cream-dim)', maxWidth: '520px', margin: '0 auto 2.5rem', lineHeight: 1.8 }}>
             Your generous offering helps us serve our community, support ministry programs, and declare the Good News across Andhra Pradesh.
