@@ -26,10 +26,12 @@ app.use(
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com', 'http://localhost:5000', 'http://localhost:3000'],
+        imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com', 'https://img.youtube.com', 'http://localhost:5000', 'http://localhost:3000'],
         connectSrc: ["'self'"],
-        fontSrc: ["'self'", 'https://fonts.googleapis.com'],
-        frameSrc: ["'none'"],
+        fontSrc: ["'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
+        frameSrc: ["'self'", 'https://www.youtube.com'],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
       },
     },
     hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
@@ -59,8 +61,8 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 // ── Body Parsing & Compression ────────────────────────────────────────────────
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 app.use(compression());
 
