@@ -59,17 +59,40 @@ export default function GalleryPage() {
             </div>
           ) : images.length > 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem', paddingBottom: '3rem' }}>
-              {images.map((img) => (
-                <div key={img.id} className="card-hover" style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', aspectRatio: '4/3', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <img src={img.imageUrl} alt={img.caption || 'Gallery Image'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
-                  {(img.caption || img.category) && (
-                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(7,11,20,0.9) 0%, transparent 50%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '1.25rem' }}>
-                       {img.caption && <div style={{ fontSize: '1.1rem', color: 'var(--cream)', fontWeight: 500, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{img.caption}</div>}
-                       {img.category && <div style={{ fontSize: '0.8rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '0.2rem' }}>{img.category}</div>}
-                     </div>
-                  )}
-                </div>
-              ))}
+              {images.map((img) => {
+                let src = img.imageUrl;
+                if (src.includes('\\')) {
+                  src = `${API.replace('/api', '')}/api/upload/local/${src.replace(/\\/g, '/').split('/').pop()}`;
+                } else if (src.startsWith('/api')) {
+                  src = `${API.replace('/api', '')}${src}`;
+                } else if (src.startsWith('/uploads')) {
+                  // Fallback for legacy paths like /uploads/local_123.jpg
+                  src = `${API.replace('/api', '')}/api/upload/local/${src.split('/').pop()}`;
+                }
+                
+                return (
+                  <div key={img.id} className="card-hover" style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', aspectRatio: '4/3', border: '1px solid rgba(255,255,255,0.05)', backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                    <img 
+                      src={src} 
+                      alt={img.caption || 'Gallery Image'} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                      loading="lazy" 
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (!target.src.includes('data:image')) {
+                          target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23222" width="100" height="100"/><text fill="rgba(255,255,255,0.5)" font-family="sans-serif" font-size="14" dy="5" font-weight="bold" x="50%" y="50%" text-anchor="middle">Image Not Found</text></svg>';
+                        }
+                      }}
+                    />
+                    {(img.caption || img.category) && (
+                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(7,11,20,0.9) 0%, transparent 50%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '1.25rem' }}>
+                         {img.caption && <div style={{ fontSize: '1.1rem', color: 'var(--cream)', fontWeight: 500, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{img.caption}</div>}
+                         {img.category && <div style={{ fontSize: '0.8rem', color: 'var(--gold)', textTransform: 'uppercase', letterSpacing: '1px', margin: '0.2rem' }}>{img.category}</div>}
+                       </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>

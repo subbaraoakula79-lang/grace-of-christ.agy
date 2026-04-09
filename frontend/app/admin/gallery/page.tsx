@@ -91,15 +91,37 @@ export default function AdminGalleryPage() {
       {/* Image Grid */}
       {loading ? <p style={{ color: 'var(--cream-dim)' }}>Loading...</p> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
-          {images.map(img => (
-            <div key={img.id} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', aspectRatio: '4/3' }} className="card-hover">
-              <img src={img.imageUrl} alt={img.caption || 'Gallery'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(7,11,20,0.9) 0%, transparent 50%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.75rem' }}>
-                {img.caption && <div style={{ fontSize: '0.75rem', color: 'var(--cream)', fontWeight: 500, marginBottom: '0.4rem' }}>{img.caption}</div>}
-                <button id={`delete-img-${img.id}`} onClick={() => deleteImage(img.id)} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', borderRadius: '6px', padding: '0.25rem 0.6rem', cursor: 'pointer', fontSize: '0.72rem' }}>🗑 Delete</button>
+          {images.map(img => {
+            let src = img.imageUrl;
+            if (src.includes('\\')) {
+              src = `${API.replace('/api', '')}/api/upload/local/${src.replace(/\\/g, '/').split('/').pop()}`;
+            } else if (src.startsWith('/api')) {
+              src = `${API.replace('/api', '')}${src}`;
+            } else if (src.startsWith('/uploads')) {
+              // Fallback for legacy paths like /uploads/local_123.jpg
+              src = `${API.replace('/api', '')}/api/upload/local/${src.split('/').pop()}`;
+            }
+
+            return (
+              <div key={img.id} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', aspectRatio: '4/3', backgroundColor: 'rgba(255,255,255,0.05)' }} className="card-hover">
+                <img 
+                  src={src} 
+                  alt={img.caption || 'Gallery'} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (!target.src.includes('data:image')) {
+                      target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23222" width="100" height="100"/><text fill="rgba(255,255,255,0.5)" font-family="sans-serif" font-size="14" dy="5" font-weight="bold" x="50%" y="50%" text-anchor="middle">Image Not Found</text></svg>';
+                    }
+                  }}
+                />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(7,11,20,0.9) 0%, transparent 50%)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '0.75rem' }}>
+                  {img.caption && <div style={{ fontSize: '0.75rem', color: 'var(--cream)', fontWeight: 500, marginBottom: '0.4rem' }}>{img.caption}</div>}
+                  <button id={`delete-img-${img.id}`} onClick={() => deleteImage(img.id)} style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', borderRadius: '6px', padding: '0.25rem 0.6rem', cursor: 'pointer', fontSize: '0.72rem' }}>🗑 Delete</button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

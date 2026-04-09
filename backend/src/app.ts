@@ -34,6 +34,7 @@ app.use(
     },
     hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
     xFrameOptions: { action: 'deny' },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
 

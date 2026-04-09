@@ -26,7 +26,7 @@ export async function listGallery(req: Request, res: Response): Promise<void> {
 
 export async function addGalleryImage(req: AuthRequest, res: Response): Promise<void> {
   const { imageUrl, publicId, caption, category } = z.object({
-    imageUrl: z.string().url(),
+    imageUrl: z.string().regex(/^(https?:\/\/[^\s]+|\/api\/[^\s]+|\/uploads\/[^\s]+)$/, 'Must be a valid URL, /api path, or legacy /uploads path'),
     publicId: z.string(),
     caption: z.string().optional(),
     category: z.string().optional(),

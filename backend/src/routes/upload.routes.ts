@@ -22,14 +22,14 @@ router.post('/image', authenticate, requireAdminOrEditor, upload.single('image')
     // Local upload for dev
     const fs = require('fs');
     const path = require('path');
-    const uploadDir = path.join(__dirname, '../../public/uploads');
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
     
-    const ext = req.file.originalname.split('.').pop();
-    const filename = `local_${Date.now()}.${ext}`;
+    const ext = path.extname(req.file.originalname) || '';
+    const filename = `local_${Date.now()}${ext}`;
     fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer);
     
-    const localUrl = `${req.protocol}://${req.get('host')}/api/upload/local/${filename}`;
+    const localUrl = `/api/upload/local/${filename}`;
     res.json({ url: localUrl, publicId: filename, mock: true });
     return;
   }
@@ -47,8 +47,17 @@ router.post('/image', authenticate, requireAdminOrEditor, upload.single('image')
 // Serve the local images
 router.get('/local/:filename', (req, res) => {
   const path = require('path');
-  const filepath = path.join(__dirname, '../../public/uploads', req.params.filename);
-  res.sendFile(filepath);
+  const filename = path.basename(req.params.filename);
+  const filepath = path.join(process.cwd(), 'public', 'uploads', filename);
+  
+  res.sendFile(filepath, (err) => {
+    if (err) {
+      console.error('Error serving local file:', err);
+      if (!res.headersSent) {
+        res.status(404).json({ error: 'File not found' });
+      }
+    }
+  });
 });
 
 export default router;
