@@ -19,7 +19,7 @@ async function main() {
     },
   });
   console.log(`✅ Admin user: ${admin.email}`);
-  console.log(`   Password: Admin@GOC2024! (change this immediately!)\n`);
+  console.log(`   Password: Admin@GOC2026! (change this immediately!)\n`);
 
   // Sample events
   const events = [
@@ -121,7 +121,7 @@ async function main() {
   console.log('\n⚠️  IMPORTANT: Change the admin password before going live!');
   console.log('   Admin URL: http://localhost:3000/admin/login');
   console.log('   Admin Email: admin@graceofchrist.org');
-  console.log('   Admin Password: Admin@GOC2024!');
+  console.log('   Admin Password: Admin@GOC2026!');
 }
 
 main()

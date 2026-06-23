@@ -19,12 +19,12 @@ export default function HeroSection() {
         setCharIdx(c => c + 1);
       }, 55);
     } else if (!deleting && charIdx === current.length) {
-      timer = setTimeout(() => setDeleting(true), 2200);
+      timer = setTimeout(() => setDeleting(true), 2800);
     } else if (deleting && charIdx > 0) {
       timer = setTimeout(() => {
         setDisplayed(current.slice(0, charIdx - 1));
         setCharIdx(c => c - 1);
-      }, 28);
+      }, 55);
     } else if (deleting && charIdx === 0) {
       timer = setTimeout(() => {
         setDeleting(false);
