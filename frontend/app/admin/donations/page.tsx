@@ -1,9 +1,18 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
 
 interface Donation {
-  id: string; receiptId: string; donorName: string; email: string;
-  phone: string; amount: string; paymentMethod: string; status: string; createdAt: string;
+  id: string;
+  receiptId: string;
+  donorName: string;
+  email: string;
+  phone: string;
+  amount: string;
+  paymentMethod: string;
+  status: string;
+  createdAt: string;
+  notes?: string;
 }
 
 export default function AdminDonationsPage() {
@@ -11,88 +20,146 @@ export default function AdminDonationsPage() {
   const [total, setTotal] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
+  const [customQR, setCustomQR] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchDonations = useCallback(async () => {
+  useEffect(() => {
+    // Load custom QR code if set
+    const savedQR = localStorage.getItem('goc_donation_qr');
+    if (savedQR) {
+      setCustomQR(savedQR);
+    }
+  }, []);
+
+  const fetchDonations = useCallback(() => {
     setLoading(true);
-    const token = localStorage.getItem('goc_access_token');
-    const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    const params = new URLSearchParams({ page: String(page), limit: '15', ...(search && { search }) });
-    const res = await fetch(`${API}/donations?${params}`, { headers: { Authorization: `Bearer ${token}` } });
-    const data = await res.json();
-    setDonations(data.donations || []);
-    setTotal(data.pagination?.total || 0);
-    setPages(data.pagination?.pages || 1);
-    setTotalRevenue(data.stats?.totalAmount || 0);
-    setLoading(false);
-  }, [page, search]);
+    try {
+      const stored = localStorage.getItem('goc_donations');
+      let data: Donation[] = stored ? JSON.parse(stored) : [];
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchDonations(); }, [fetchDonations]);
+      if (search) {
+        const sLower = search.toLowerCase();
+        data = data.filter(d => 
+          d.donorName.toLowerCase().includes(sLower) ||
+          d.email.toLowerCase().includes(sLower) ||
+          d.receiptId.toLowerCase().includes(sLower)
+        );
+      }
 
-  const downloadPDF = (receiptId: string) => {
-    const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    window.open(`${API}/donations/receipt/${receiptId}/pdf`, '_blank');
+      setDonations(data);
+      setTotal(data.length);
+      const rev = data.reduce((sum, d) => sum + parseFloat(d.amount || '0'), 0);
+      setTotalRevenue(rev);
+    } catch (err) {
+      console.error('Failed to load donations locally', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [search]);
+
+  useEffect(() => {
+    fetchDonations();
+  }, [fetchDonations]);
+
+  const handleQRUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        localStorage.setItem('goc_donation_qr', base64);
+        setCustomQR(base64);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleResetQR = () => {
+    localStorage.removeItem('goc_donation_qr');
+    setCustomQR(null);
   };
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem' }}>Donations</h1>
-          <p style={{ color: 'var(--cream-dim)', fontSize: '0.88rem' }}>{total} total · ₹{Number(totalRevenue).toLocaleString('en-IN')} collected</p>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, marginBottom: '0.25rem', color: 'var(--text-primary)' }}>Donations & Setup</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>{total} total scan intents · ₹{totalRevenue.toLocaleString('en-IN')} pledged</p>
         </div>
-        <a
-          id="export-donations-csv"
-          href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/reports/donations/csv`}
-          target="_blank" rel="noopener noreferrer"
-          className="btn btn-outline-gold" style={{ padding: '0.6rem 1.4rem', fontSize: '0.82rem' }}>
-          ⬇ Export CSV
-        </a>
+      </div>
+
+      {/* Donation Setup Section */}
+      <div className="spatial-glass-mid" style={{ padding: '2rem', border: '1px solid rgba(16, 185, 129, 0.15)', marginBottom: '2.5rem' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>UPI QR Code Setup</h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+          Set the UPI QR Code image that will be shown to public website visitors when they trigger the donate pop-up.
+        </p>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+          {/* Current QR Preview */}
+          <div style={{
+            background: '#fff', padding: '0.75rem', borderRadius: '12px',
+            width: '120px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
+          }}>
+            <img 
+              src={customQR || '/donation_qr.png'} 
+              alt="Current QR Code" 
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <label className="btn-spatial btn-primary" style={{ cursor: 'pointer', padding: '0.6rem 1.5rem', fontSize: '0.8rem' }}>
+              Upload New QR Code
+              <input type="file" accept="image/*" onChange={handleQRUpload} style={{ display: 'none' }} />
+            </label>
+            {customQR && (
+              <button onClick={handleResetQR} className="btn-spatial btn-glass" style={{ padding: '0.6rem 1.5rem', fontSize: '0.8rem' }}>
+                Reset to Default
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Search */}
       <div style={{ marginBottom: '1.5rem' }}>
-        <input id="donations-search" className="input-field" type="text" placeholder="🔍 Search by name, email, or receipt ID..."
-          value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-          style={{ maxWidth: '480px' }} />
+        <input id="donations-search" className="input-spatial" type="text" placeholder="🔍 Search by name, email, or receipt ID..."
+          value={search} onChange={e => setSearch(e.target.value)}
+          style={{ maxWidth: '480px', borderRadius: 'var(--r-pill)', background: 'rgba(255, 255, 255, 0.05)' }} />
       </div>
 
       {/* Table */}
-      <div className="glass" style={{ borderRadius: '16px', overflow: 'hidden' }}>
+      <div className="spatial-glass" style={{ border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(212,175,55,0.15)' }}>
-                {['Receipt ID', 'Donor', 'Amount', 'Method', 'Status', 'Date', 'PDF'].map(h => (
-                  <th key={h} style={{ padding: '1rem 1.25rem', textAlign: 'left', fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
+              <tr style={{ borderBottom: '1px solid rgba(16,185,129,0.15)' }}>
+                {['ID / Receipt', 'Donor', 'Amount', 'Method', 'Status', 'Date'].map(h => (
+                  <th key={h} style={{ padding: '1rem 1.25rem', textAlign: 'left', fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--violet)', fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--cream-dim)' }}>Loading...</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-secondary)' }}>Loading transactions...</td></tr>
               ) : donations.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--cream-dim)' }}>No donations found.</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-secondary)' }}>No transactions logged.</td></tr>
               ) : (
-                donations.map(d => (
-                  <tr key={d.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '0.9rem 1.25rem', color: 'var(--gold)', fontWeight: 600, fontFamily: 'monospace', fontSize: '0.8rem' }}>{d.receiptId}</td>
+                donations.map((d, idx) => (
+                  <tr key={d.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: idx % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
+                    <td style={{ padding: '0.9rem 1.25rem', color: 'var(--violet)', fontWeight: 600, fontFamily: 'monospace', fontSize: '0.8rem' }}>{d.receiptId}</td>
                     <td style={{ padding: '0.9rem 1.25rem' }}>
-                      <div style={{ fontWeight: 500, color: 'var(--cream)' }}>{d.donorName}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--cream-dim)' }}>{d.email}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{d.donorName}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{d.email}</div>
                     </td>
-                    <td style={{ padding: '0.9rem 1.25rem', color: '#4ade80', fontWeight: 700 }}>₹{Number(d.amount).toLocaleString('en-IN')}</td>
-                    <td style={{ padding: '0.9rem 1.25rem', color: 'var(--cream-dim)', textTransform: 'uppercase', fontSize: '0.78rem' }}>{d.paymentMethod}</td>
+                    <td style={{ padding: '0.9rem 1.25rem', color: 'var(--teal)', fontWeight: 700 }}>₹{Number(d.amount).toLocaleString('en-IN')}</td>
+                    <td style={{ padding: '0.9rem 1.25rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontSize: '0.78rem' }}>{d.paymentMethod}</td>
                     <td style={{ padding: '0.9rem 1.25rem' }}>
-                      <span style={{ padding: '0.2rem 0.75rem', borderRadius: 9999, fontSize: '0.72rem', fontWeight: 600, background: d.status === 'SUCCESS' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', color: d.status === 'SUCCESS' ? '#4ade80' : '#f87171', border: `1px solid ${d.status === 'SUCCESS' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}` }}>{d.status}</span>
+                      <span style={{ padding: '0.25rem 0.75rem', borderRadius: 9999, fontSize: '0.72rem', fontWeight: 600, background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.25)' }}>{d.status}</span>
                     </td>
-                    <td style={{ padding: '0.9rem 1.25rem', color: 'var(--cream-dim)', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>{new Date(d.createdAt).toLocaleDateString('en-IN')}</td>
-                    <td style={{ padding: '0.9rem 1.25rem' }}>
-                      <button id={`dl-pdf-${d.receiptId}`} onClick={() => downloadPDF(d.receiptId)} className="btn btn-glass" style={{ padding: '0.35rem 0.85rem', fontSize: '0.75rem' }}>⬇ PDF</button>
-                    </td>
+                    <td style={{ padding: '0.9rem 1.25rem', color: 'var(--text-secondary)', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>{new Date(d.createdAt).toLocaleDateString('en-IN')}</td>
                   </tr>
                 ))
               )}
@@ -100,15 +167,6 @@ export default function AdminDonationsPage() {
           </table>
         </div>
       </div>
-
-      {/* Pagination */}
-      {pages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
-          {Array.from({ length: pages }, (_, i) => i + 1).map(p => (
-            <button key={p} onClick={() => setPage(p)} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', background: p === page ? 'var(--gold)' : 'rgba(255,255,255,0.06)', color: p === page ? '#070B14' : 'var(--cream)', fontWeight: 600, fontSize: '0.85rem' }}>{p}</button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

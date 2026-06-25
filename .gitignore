@@ -4,6 +4,14 @@ build/
 .next/
 .env
 .env.local
+.env.example
 *.log
 .DS_Store
 Thumbs.db
+*.tsbuildinfo
+
+# Build/test artifacts
+lint.json
+lint_output.txt
+seed_output.txt
+test.jpg

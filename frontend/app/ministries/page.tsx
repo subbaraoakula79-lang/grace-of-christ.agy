@@ -1,8 +1,8 @@
-import type { Metadata } from 'next';
+'use client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-
-export const metadata: Metadata = { title: 'Ministries' };
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 const ministries = [
   {
@@ -53,48 +53,92 @@ export default function MinistriesPage() {
       <Navbar />
 
       {/* Header */}
-      <section className="gradient-hero" style={{ paddingTop: '140px', paddingBottom: '5rem', textAlign: 'center' }}>
+      <section className="page-header">
         <div className="container">
-          <div className="section-label" style={{ justifyContent: 'center' }}>What We Do</div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, marginBottom: '1rem' }}>
-            Our <span className="text-gradient-gold">Ministries</span>
-          </h1>
-          <p style={{ color: 'var(--cream-dim)', maxWidth: '560px', margin: '0 auto', lineHeight: 1.8 }}>
-            Every ministry at Grace of Christ is a pathway for believers to discover their calling, serve their community, and grow in faith.
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="section-label">What We Do</div>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, marginBottom: '1rem' }}>
+              Our <span className="accent-text">Ministries</span>
+            </h1>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '560px', margin: '0 auto', lineHeight: 1.8 }}>
+              Every ministry at Grace of Christ is a pathway for believers to discover their calling, serve their community, and grow in faith.
+            </p>
+          </motion.div>
         </div>
       </section>
 
       {/* Ministries Grid */}
-      <section className="section" style={{ background: 'var(--midnight)' }}>
+      <section className="section" style={{ background: 'var(--space-mid)', position: 'relative' }}>
         <div className="container">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.75rem' }}>
-            {ministries.map((m) => (
-              <div key={m.title} className="glass card-hover" style={{ padding: '2.25rem', borderRadius: '20px' }}>
-                <div style={{ fontSize: '2.8rem', marginBottom: '1rem' }}>{m.icon}</div>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, color: 'var(--cream)', marginBottom: '0.75rem' }}>{m.title}</h2>
-                <p style={{ fontSize: '0.88rem', color: 'var(--cream-dim)', lineHeight: 1.8, marginBottom: '1.5rem' }}>{m.desc}</p>
+            {ministries.map((m, idx) => (
+              <motion.div
+                key={m.title}
+                initial={{ opacity: 0, y: 35 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.6, delay: idx * 0.05 }}
+                className="spatial-card"
+                style={{ padding: '2.5rem 2.25rem', border: '1px solid rgba(255,255,255,0.06)' }}
+              >
+                <div style={{ fontSize: '2.8rem', marginBottom: '1.2rem' }}>{m.icon}</div>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>{m.title}</h2>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '1.75rem' }}>{m.desc}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {m.activities.map(a => (
-                    <span key={a} style={{ fontSize: '0.72rem', padding: '0.3rem 0.75rem', borderRadius: 9999, background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.2)', color: 'var(--gold)', letterSpacing: '0.03em' }}>{a}</span>
+                    <span
+                      key={a}
+                      className="spatial-glass"
+                      style={{
+                        fontSize: '0.72rem',
+                        padding: '0.35rem 0.85rem',
+                        borderRadius: 9999,
+                        border: '1px solid rgba(16, 185, 129, 0.18)',
+                        color: 'var(--violet)',
+                        fontWeight: 600,
+                        letterSpacing: '0.03em'
+                      }}
+                    >
+                      {a}
+                    </span>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Join CTA */}
-      <section className="section" style={{ background: 'linear-gradient(135deg, var(--deep-navy), var(--purple-deep))', textAlign: 'center' }}>
-        <div className="container">
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, marginBottom: '1rem' }}>
-            Get <span className="text-gradient-gold">Involved</span>
-          </h2>
-          <p style={{ color: 'var(--cream-dim)', maxWidth: '500px', margin: '0 auto 2.5rem', lineHeight: 1.8 }}>
-            Every member is a minister. Contact us to find out how you can serve and make a difference in our church and community.
-          </p>
-          <a href="/contact" className="btn btn-gold">Join a Ministry</a>
+      <section className="section" style={{ background: 'var(--space)', textAlign: 'center', position: 'relative' }}>
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          width: '500px', height: '500px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(192, 132, 252, 0.05), transparent 70%)',
+          filter: 'blur(50px)', pointerEvents: 'none'
+        }} />
+
+        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="spatial-glass-mid"
+            style={{ padding: '4rem 2.5rem', border: '1px solid rgba(16, 185, 129, 0.15)', maxWidth: '800px', margin: '0 auto' }}
+          >
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, marginBottom: '1rem' }}>
+              Get <span className="accent-text">Involved</span>
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 2.5rem', lineHeight: 1.8 }}>
+              Every member is a minister. Contact us to find out how you can serve and make a difference in our church and community.
+            </p>
+            <Link href="/contact" className="btn-spatial btn-primary">Join a Ministry</Link>
+          </motion.div>
         </div>
       </section>
 

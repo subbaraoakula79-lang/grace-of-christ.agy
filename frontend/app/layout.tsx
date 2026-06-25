@@ -35,18 +35,11 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-import { ThemeProvider } from 'next-themes';
-import NavBar from '@/components/NavBar';
-import ThemeProviderWrapper from './theme';
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${cormorant.variable} ${inter.variable}`}>
-      <body className="bg-bg text-text-dark antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <NavBar />
-          {children}
-        </ThemeProvider>
+      <body>
+        {children}
       </body>
     </html>
   );

@@ -24,53 +24,62 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const token = localStorage.getItem('goc_access_token');
     const u = localStorage.getItem('goc_user');
     if (!token || !u) { router.push('/admin/login'); return; }
-    const parsed = JSON.parse(u) as { name: string; role: string };
-    setTimeout(() => setUser(parsed), 0);
+    try {
+      const parsed = JSON.parse(u) as { name: string; role: string };
+      setUser(parsed);
+    } catch {
+      router.push('/admin/login');
+    }
   }, [pathname, router]);
 
   if (pathname === '/admin/login') return <>{children}</>;
 
   const handleLogout = async () => {
     const token = localStorage.getItem('goc_access_token');
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
-      method: 'POST', headers: { Authorization: `Bearer ${token}` }, credentials: 'include',
-    }).catch(() => {});
+    try {
+      const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      await fetch(`${API}/auth/logout`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` }, credentials: 'include',
+      });
+    } catch (err) {
+      console.warn('Logging out offline mode', err);
+    }
     localStorage.removeItem('goc_access_token');
     localStorage.removeItem('goc_user');
     router.push('/admin/login');
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--midnight)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--space)' }}>
       {/* Sidebar */}
       <aside style={{
         width: '240px', flexShrink: 0,
-        background: 'var(--deep-navy)',
-        borderRight: '1px solid rgba(212,175,55,0.1)',
+        background: 'var(--space-mid)',
+        borderRight: '1px solid rgba(16, 185, 129, 0.12)',
         display: 'flex', flexDirection: 'column',
         position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50,
         transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
-        transition: 'transform 0.3s',
+        transition: 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
       }} className="admin-sidebar">
         {/* Logo */}
-        <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(212,175,55,0.1)' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--gold)' }}>✝ GOC Admin</div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--cream-dim)', marginTop: '0.2rem' }}>Grace of Christ Church</div>
+        <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(16, 185, 129, 0.12)' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--violet)' }}>✝ GOC Admin</div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.2rem', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Grace of Christ</div>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '1rem 0', overflowY: 'auto' }}>
+        <nav style={{ flex: 1, padding: '1.25rem 0', overflowY: 'auto' }}>
           {navItems.map(item => {
             const active = pathname === item.href;
             return (
               <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '0.85rem',
-                  padding: '0.8rem 1.5rem',
-                  color: active ? 'var(--gold)' : 'var(--cream-dim)',
-                  background: active ? 'rgba(212,175,55,0.08)' : 'transparent',
-                  borderLeft: active ? '3px solid var(--gold)' : '3px solid transparent',
-                  textDecoration: 'none', fontSize: '0.88rem', fontWeight: active ? 600 : 400,
+                  padding: '0.85rem 1.5rem',
+                  color: active ? 'var(--violet)' : 'var(--text-secondary)',
+                  background: active ? 'rgba(16, 185, 129, 0.06)' : 'transparent',
+                  borderLeft: active ? '3px solid var(--violet)' : '3px solid transparent',
+                  textDecoration: 'none', fontSize: '0.9rem', fontWeight: active ? 600 : 400,
                   transition: 'all 0.2s',
                 }}>
                 <span>{item.icon}</span>
@@ -82,10 +91,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* User & logout */}
         {user && (
-          <div style={{ padding: '1.25rem', borderTop: '1px solid rgba(212,175,55,0.1)' }}>
-            <div style={{ fontSize: '0.82rem', color: 'var(--cream)', fontWeight: 600, marginBottom: '0.2rem' }}>{user.name}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--cream-dim)', marginBottom: '1rem' }}>{user.role}</div>
-            <button id="admin-logout" onClick={handleLogout} className="btn btn-glass" style={{ width: '100%', padding: '0.5rem', fontSize: '0.78rem' }}>Sign Out</button>
+          <div style={{ padding: '1.25rem', borderTop: '1px solid rgba(16, 185, 129, 0.12)', background: 'rgba(255,255,255,0.01)' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 600, marginBottom: '0.2rem' }}>{user.name}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>{user.role}</div>
+            <button id="admin-logout" onClick={handleLogout} className="btn-spatial btn-glass" style={{ width: '100%', padding: '0.5rem', fontSize: '0.78rem' }}>Sign Out</button>
           </div>
         )}
       </aside>
@@ -93,10 +102,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginLeft: '240px' }} className="admin-main">
         {/* Top bar */}
-        <header style={{ height: '60px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', padding: '0 2rem', gap: '1rem', background: 'rgba(12,22,40,0.8)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 40 }}>
-          <button id="sidebar-toggle" aria-label="Toggle sidebar" onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: 'var(--cream)', cursor: 'pointer', fontSize: '1.2rem' }} className="hamburger">☰</button>
+        <header style={{ 
+          height: '60px', 
+          borderBottom: '1px solid rgba(16, 185, 129, 0.12)', 
+          display: 'flex', alignItems: 'center', padding: '0 2rem', gap: '1rem', 
+          background: 'rgba(7,13,12,0.8)', backdropFilter: 'blur(20px)', 
+          position: 'sticky', top: 0, zIndex: 40 
+        }}>
+          <button id="sidebar-toggle" aria-label="Toggle sidebar" onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '1.4rem' }} className="hamburger">☰</button>
           <div style={{ flex: 1 }} />
-          <Link href="/" target="_blank" style={{ fontSize: '0.8rem', color: 'var(--cream-dim)', textDecoration: 'none' }}>View Site ↗</Link>
+          <Link href="/" target="_blank" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--violet)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>View Site ↗</Link>
         </header>
 
         <main style={{ flex: 1, padding: '2rem' }}>
@@ -105,7 +120,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Overlay */}
-      {sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 49 }} />}
+      {sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 49 }} />}
 
       <style>{`
         @media (min-width: 769px) {
