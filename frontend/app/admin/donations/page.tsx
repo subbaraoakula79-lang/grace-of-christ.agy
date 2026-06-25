@@ -124,7 +124,7 @@ export default function AdminDonationsPage() {
             boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
           }}>
             <img 
-              src={customQR || '/donation_qr.png'} 
+              src={customQR || '/qr.jpeg'} 
               alt="Current QR Code" 
               style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
             />

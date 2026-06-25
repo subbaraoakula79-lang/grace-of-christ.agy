@@ -501,4 +501,25 @@ h1, h2, h3 {
   .desktop-nav { display: none !important; }
   .hamburger   { display: flex !important; }
   .page-header { padding-top: 120px; padding-bottom: 3rem; }
+  
+  /* Mobile Layout Adjustments */
+  .p-mobile-adjust {
+    padding: 1.5rem 1.25rem !important;
+  }
+  .qr-modal-overlay {
+    padding: 1rem !important;
+    align-items: flex-start !important; /* Allow scrolling from top on overflow */
+    overflow-y: auto !important;
+  }
+  .qr-modal-inner {
+    padding: 1.75rem 1.25rem !important;
+    margin-top: 2rem !important;
+    margin-bottom: 2rem !important;
+  }
+  .qr-image-container {
+    width: 200px !important;
+    height: 200px !important;
+    margin-bottom: 1rem !important;
+  }
 }
+

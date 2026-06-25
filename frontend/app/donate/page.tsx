@@ -90,7 +90,7 @@ export default function DonatePage() {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
-            className="spatial-glass-mid"
+            className="spatial-glass-mid p-mobile-adjust"
             style={{ padding: '2.5rem', border: '1px solid rgba(255, 255, 255, 0.06)' }}
           >
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Offering Details</h2>
@@ -135,6 +135,7 @@ export default function DonatePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            className="qr-modal-overlay"
             style={{
               position: 'fixed', inset: 0, zIndex: 1100,
               background: 'rgba(7, 13, 12, 0.94)',
@@ -148,7 +149,7 @@ export default function DonatePage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.94, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="spatial-glass-top"
+              className="spatial-glass-top qr-modal-inner"
               style={{
                 width: '100%', maxWidth: '400px',
                 padding: '2.5rem 2rem', border: '1px solid rgba(255,255,255,0.1)',
@@ -161,7 +162,7 @@ export default function DonatePage() {
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>Scan and pay using GPay, PhonePe, or BHIM</p>
                   
                   {/* QR Image Container */}
-                  <div style={{
+                  <div className="qr-image-container" style={{
                     background: '#fff', padding: '1.25rem', borderRadius: '18px',
                     width: '240px', height: '240px', margin: '0 auto 1.5rem',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
@@ -169,7 +170,7 @@ export default function DonatePage() {
                     overflow: 'hidden'
                   }}>
                     <img 
-                      src={customQR || '/donation_qr.png'} 
+                      src={customQR || '/qr.jpeg'} 
                       alt="Donation QR Code" 
                       style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
                     />
