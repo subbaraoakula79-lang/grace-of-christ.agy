@@ -1,9 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 
 interface ReceiptData {
@@ -17,15 +17,20 @@ interface ReceiptData {
   createdAt: string;
 }
 
-export default function ReceiptPage() {
-  const params = useParams();
-  const receiptId = params.receiptId as string;
+function ReceiptPageContent() {
+  const searchParams = useSearchParams();
+  const receiptId = searchParams.get('id') || '';
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
+    if (!receiptId) {
+      setLoading(false);
+      return;
+    }
+
     const fetchReceipt = async () => {
       try {
         // Try local storage first
@@ -57,30 +62,24 @@ export default function ReceiptPage() {
 
   if (loading) {
     return (
-      <>
-        <Navbar />
-        <section className="page-header" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Loading receipt details...</div>
-        </section>
-        <Footer />
-      </>
+      <section className="page-header" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Loading receipt details...</div>
+      </section>
     );
   }
 
-  if (!receipt) {
+  if (!receipt || !receiptId) {
     return (
-      <>
-        <Navbar />
-        <section className="page-header" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="container" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>❌</div>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Receipt Not Found</h1>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem' }}>The receipt ID <strong style={{ color: 'var(--text-primary)' }}>{receiptId}</strong> could not be found.</p>
-            <Link href="/donate" className="btn-spatial btn-primary">Make a Donation</Link>
-          </div>
-        </section>
-        <Footer />
-      </>
+      <section className="page-header" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="container" style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>❌</div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Receipt Not Found</h1>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem' }}>
+            {receiptId ? `The receipt ID ${receiptId} could not be found.` : 'No receipt ID was provided.'}
+          </p>
+          <Link href="/donate" className="btn-spatial btn-primary">Make a Donation</Link>
+        </div>
+      </section>
     );
   }
 
@@ -91,8 +90,6 @@ export default function ReceiptPage() {
 
   return (
     <>
-      <Navbar />
-
       <section className="page-header">
         <div className="container">
           <motion.div
@@ -182,7 +179,21 @@ export default function ReceiptPage() {
           </div>
         </div>
       </section>
+    </>
+  );
+}
 
+export default function ReceiptPage() {
+  return (
+    <>
+      <Navbar />
+      <Suspense fallback={
+        <section className="page-header" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Loading receipt details...</div>
+        </section>
+      }>
+        <ReceiptPageContent />
+      </Suspense>
       <Footer />
     </>
   );
