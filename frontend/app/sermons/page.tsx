@@ -16,38 +16,8 @@ interface Sermon {
   isPublished: boolean;
 }
 
-const defaultSermons: Sermon[] = [
-  {
-    id: 'serm-1',
-    title: 'The Power of Intercessory Prayer',
-    description: 'Pastor K. John Prasad shares a powerful message on how intercessory prayer shifts spiritual atmospheres and builds active faith in our community.',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    speaker: 'Pastor K. John Prasad',
-    date: '2026-06-21',
-    tags: ['Prayer', 'Faith', 'Revival'],
-    isPublished: true,
-  },
-  {
-    id: 'serm-2',
-    title: 'Living in His Amazing Grace',
-    description: 'Discover the depth of God\'s grace and how it empowers us to live victorious Christian lives filled with joy and mercy.',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    speaker: 'Pastor K. John Prasad',
-    date: '2026-06-14',
-    tags: ['Grace', 'Victory', 'Salvation'],
-    isPublished: true,
-  },
-  {
-    id: 'serm-3',
-    title: 'The Calling of the Next Generation',
-    description: 'An encouraging message challenging the youth to stand firm in biblical truth, discover their identity, and pursue kingdom purpose.',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    speaker: 'Pastor K. John Prasad',
-    date: '2026-06-07',
-    tags: ['Youth', 'Purpose', 'Calling'],
-    isPublished: true,
-  }
-];
+const defaultSermons: Sermon[] = [];
+
 
 function getYouTubeId(url: string): string {
   const match = url.match(/(?:v=|\/embed\/|youtu\.be\/)([^&?/]+)/);

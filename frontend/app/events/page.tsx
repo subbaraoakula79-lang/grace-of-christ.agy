@@ -15,35 +15,8 @@ interface Event {
   isPublished: boolean;
 }
 
-const defaultEvents: Event[] = [
-  {
-    id: 'ev-1',
-    title: 'Sunday Worship & Revival Service',
-    description: 'Join us for an uplifting time of praise, worship, and a powerful message of hope from Pastor K. John Prasad.',
-    date: '2026-07-05',
-    time: '6:00 AM & 9:30 AM',
-    location: 'Yetimoga, Kakinada',
-    isPublished: true,
-  },
-  {
-    id: 'ev-2',
-    title: 'Midweek Intercessory Prayer Meeting',
-    description: 'A special time dedicated to corporate intercession for our nation, families, and personal prayer requests.',
-    date: '2026-07-08',
-    time: '6:30 PM',
-    location: 'Yetimoga, Kakinada',
-    isPublished: true,
-  },
-  {
-    id: 'ev-3',
-    title: 'Youth Awakening Conference 2026',
-    description: 'An annual gathering of young believers across Andhra Pradesh focused on revival, purpose, and biblical discipleship.',
-    date: '2026-08-14',
-    time: '9:00 AM – 4:00 PM',
-    location: 'Grace of Christ Church Grounds',
-    isPublished: true,
-  }
-];
+const defaultEvents: Event[] = [];
+
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);

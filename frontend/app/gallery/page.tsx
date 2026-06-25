@@ -14,56 +14,8 @@ interface GalleryImage {
   createdAt: string;
 }
 
-const defaultImages: GalleryImage[] = [
-  {
-    id: 'g-1',
-    imageUrl: 'https://images.unsplash.com/photo-1515162305285-0293e4767cc2?q=80&w=800&auto=format&fit=crop',
-    publicId: 'worship-1',
-    caption: 'Sunday Worship Revival',
-    category: 'Worship',
-    createdAt: '2026-06-20',
-  },
-  {
-    id: 'g-2',
-    imageUrl: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?q=80&w=800&auto=format&fit=crop',
-    publicId: 'prayer-1',
-    caption: 'Intercessory Prayer Meeting',
-    category: 'Prayer',
-    createdAt: '2026-06-18',
-  },
-  {
-    id: 'g-3',
-    imageUrl: 'https://images.unsplash.com/photo-1504052434569-70ad58565b90?q=80&w=800&auto=format&fit=crop',
-    publicId: 'bible-1',
-    caption: 'Weekly Discipleship Group',
-    category: 'Bible Study',
-    createdAt: '2026-06-15',
-  },
-  {
-    id: 'g-4',
-    imageUrl: 'https://images.unsplash.com/photo-1461530751291-6897f0a44c41?q=80&w=800&auto=format&fit=crop',
-    publicId: 'community-1',
-    caption: 'Youth Outreach Program',
-    category: 'Outreach',
-    createdAt: '2026-06-12',
-  },
-  {
-    id: 'g-5',
-    imageUrl: 'https://images.unsplash.com/photo-1438263308945-858e2f679b92?q=80&w=800&auto=format&fit=crop',
-    publicId: 'cross-1',
-    caption: 'Easter Celebration Service',
-    category: 'Worship',
-    createdAt: '2026-06-10',
-  },
-  {
-    id: 'g-6',
-    imageUrl: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?q=80&w=800&auto=format&fit=crop',
-    publicId: 'church-1',
-    caption: 'GOC Yetimoga Sanctuary',
-    category: 'Church',
-    createdAt: '2026-06-05',
-  }
-];
+const defaultImages: GalleryImage[] = [];
+
 
 export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
