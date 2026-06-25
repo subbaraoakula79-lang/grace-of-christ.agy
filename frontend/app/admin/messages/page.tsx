@@ -39,28 +39,54 @@ export default function AdminMessagesPage() {
   const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   const token = () => localStorage.getItem('goc_access_token');
 
-  const fetchMessages = useCallback(() => {
+  const fetchMessages = useCallback(async () => {
     setLoading(true);
     try {
-      const stored = localStorage.getItem('goc_messages');
-      let data: Message[] = stored ? JSON.parse(stored) : [];
-      if (data.length === 0 && !stored) {
-        localStorage.setItem('goc_messages', JSON.stringify(defaultMessages));
-        data = defaultMessages;
+      const params = new URLSearchParams({
+        limit: '100',
+        ...(unread && { unread: 'true' })
+      });
+      const res = await fetch(`${API}/contact?${params}`, {
+        headers: { Authorization: `Bearer ${token()}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const mapped = data.messages.map((m: any) => ({
+          id: m.id,
+          name: m.name,
+          email: m.email,
+          phone: m.phone,
+          subject: m.subject,
+          message: m.message,
+          read: m.isRead,
+          createdAt: m.createdAt
+        }));
+        setMessages(mapped);
+        if (!unread) {
+          localStorage.setItem('goc_messages', JSON.stringify(mapped));
+        }
+      } else {
+        const stored = localStorage.getItem('goc_messages');
+        if (stored) {
+          let data = JSON.parse(stored);
+          if (unread) data = data.filter((m: any) => !m.read);
+          setMessages(data);
+        }
       }
-
-      if (unread) {
-        data = data.filter(m => !m.read);
-      }
-
-      // Sync field naming differences (read vs isRead) from backend if needed
-      setMessages(data);
     } catch (err) {
-      console.error('Failed to parse local messages', err);
+      console.error('Failed to fetch messages from API', err);
+      const stored = localStorage.getItem('goc_messages');
+      if (stored) {
+        try {
+          let data = JSON.parse(stored);
+          if (unread) data = data.filter((m: any) => !m.read);
+          setMessages(data);
+        } catch {}
+      }
     } finally {
       setLoading(false);
     }
-  }, [unread]);
+  }, [unread, API]);
 
   useEffect(() => {
     fetchMessages();
@@ -68,42 +94,47 @@ export default function AdminMessagesPage() {
 
   const markRead = async (id: string) => {
     try {
-      const stored = localStorage.getItem('goc_messages');
-      if (stored) {
-        const data: Message[] = JSON.parse(stored);
-        const updated = data.map(m => m.id === id ? { ...m, read: true } : m);
-        localStorage.setItem('goc_messages', JSON.stringify(updated));
-      }
-      setMessages(ms => ms.map(m => m.id === id ? { ...m, read: true } : m));
-      if (selected?.id === id) setSelected(s => s ? { ...s, read: true } : null);
-
-      await fetch(`${API}/contact/${id}/read`, {
+      const res = await fetch(`${API}/contact/${id}/read`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token()}` }
       });
+      if (res.ok) {
+        setMessages(ms => ms.map(m => m.id === id ? { ...m, read: true } : m));
+        if (selected?.id === id) setSelected(s => s ? { ...s, read: true } : null);
+        // Update local cache
+        const stored = localStorage.getItem('goc_messages');
+        if (stored) {
+          const data = JSON.parse(stored).map((m: any) => m.id === id ? { ...m, read: true } : m);
+          localStorage.setItem('goc_messages', JSON.stringify(data));
+        }
+      }
     } catch (err) {
-      console.warn('API error during markRead, updated locally', err);
+      console.warn('API error during markRead', err);
     }
   };
 
   const deleteMsg = async (id: string) => {
     if (!confirm('Delete this message?')) return;
     try {
-      const stored = localStorage.getItem('goc_messages');
-      if (stored) {
-        const data: Message[] = JSON.parse(stored);
-        const filtered = data.filter(m => m.id !== id);
-        localStorage.setItem('goc_messages', JSON.stringify(filtered));
-      }
-      setMessages(ms => ms.filter(m => m.id !== id));
-      if (selected?.id === id) setSelected(null);
-
-      await fetch(`${API}/contact/${id}`, {
+      const res = await fetch(`${API}/contact/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token()}` }
       });
+      if (res.ok) {
+        setMessages(ms => ms.filter(m => m.id !== id));
+        if (selected?.id === id) setSelected(null);
+        // Update local cache
+        const stored = localStorage.getItem('goc_messages');
+        if (stored) {
+          const data = JSON.parse(stored).filter((m: any) => m.id !== id);
+          localStorage.setItem('goc_messages', JSON.stringify(data));
+        }
+      } else {
+        alert('Failed to delete message from database');
+      }
     } catch (err) {
-      console.warn('API error during deleteMsg, updated locally', err);
+      console.error('API error during deleteMsg', err);
+      alert('Network error: Failed to delete message.');
     }
   };
 

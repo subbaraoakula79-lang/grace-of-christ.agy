@@ -15,9 +15,10 @@ const eventSchema = z.object({
 });
 
 export async function listEvents(req: Request, res: Response): Promise<void> {
-  const { upcoming, limit = '20', page = '1' } = req.query as any;
+  const { upcoming, limit = '20', page = '1', all } = req.query as any;
   const skip = (parseInt(page) - 1) * parseInt(limit);
-  const where: any = { isPublished: true };
+  const where: any = {};
+  if (all !== 'true') where.isPublished = true;
   if (upcoming === 'true') where.date = { gte: new Date() };
 
   const [events, total] = await Promise.all([

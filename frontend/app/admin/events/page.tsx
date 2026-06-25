@@ -51,22 +51,30 @@ export default function AdminEventsPage() {
   const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   const token = () => localStorage.getItem('goc_access_token');
 
-  const fetchEvents = useCallback(() => {
+  const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const stored = localStorage.getItem('goc_events');
-      if (stored) {
-        setEvents(JSON.parse(stored));
+      const res = await fetch(`${API}/events?all=true&limit=100`);
+      if (res.ok) {
+        const data = await res.json();
+        setEvents(data.events);
+        localStorage.setItem('goc_events', JSON.stringify(data.events));
       } else {
-        localStorage.setItem('goc_events', JSON.stringify(defaultEvents));
-        setEvents(defaultEvents);
+        const stored = localStorage.getItem('goc_events');
+        if (stored) setEvents(JSON.parse(stored));
       }
     } catch (err) {
-      console.error('Failed to parse local events', err);
+      console.error('Failed to fetch events from API', err);
+      const stored = localStorage.getItem('goc_events');
+      if (stored) {
+        try {
+          setEvents(JSON.parse(stored));
+        } catch {}
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [API]);
 
   useEffect(() => {
     fetchEvents();
@@ -95,11 +103,7 @@ export default function AdminEventsPage() {
     setSaving(true); setError('');
     
     try {
-      const stored = localStorage.getItem('goc_events');
-      let data: Event[] = stored ? JSON.parse(stored) : [];
-
-      const newEvent: Event = {
-        id: editId || `ev-${Date.now()}`,
+      const eventData = {
         title: form.title,
         description: form.description,
         date: new Date(form.date).toISOString(),
@@ -108,28 +112,24 @@ export default function AdminEventsPage() {
         isPublished: form.isPublished
       };
 
-      if (editId) {
-        data = data.map(ev => ev.id === editId ? newEvent : ev);
-      } else {
-        data.unshift(newEvent);
-      }
-
-      localStorage.setItem('goc_events', JSON.stringify(data));
-      setShowForm(false);
-      fetchEvents();
-
-      // Async push to backend
       const url = editId ? `${API}/events/${editId}` : `${API}/events`;
       const method = editId ? 'PUT' : 'POST';
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify(newEvent)
+        body: JSON.stringify(eventData)
       });
-    } catch (err) {
-      console.warn('API sync failed, event updated locally', err);
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Failed to save event: ${errText}`);
+      }
+
       setShowForm(false);
       fetchEvents();
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'API sync failed. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -138,20 +138,18 @@ export default function AdminEventsPage() {
   const deleteEvent = async (id: string) => {
     if (!confirm('Delete this event?')) return;
     try {
-      const stored = localStorage.getItem('goc_events');
-      if (stored) {
-        const data: Event[] = JSON.parse(stored);
-        const filtered = data.filter(ev => ev.id !== id);
-        localStorage.setItem('goc_events', JSON.stringify(filtered));
-      }
-      fetchEvents();
-
-      await fetch(`${API}/events/${id}`, {
+      const res = await fetch(`${API}/events/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token()}` }
       });
+      if (res.ok) {
+        fetchEvents();
+      } else {
+        alert('Failed to delete event from database');
+      }
     } catch (err) {
-      console.warn('API sync failed, event deleted locally', err);
+      console.error('API deletion failed', err);
+      alert('Network error: Failed to delete event.');
     }
   };
 

@@ -41,7 +41,7 @@ export default function AdminDashboard() {
         const token = localStorage.getItem('goc_access_token');
         const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-        // Prepare local summaries
+        // Prepare local fallback summaries (using actual local data or 0, no mock numbers)
         const donations = JSON.parse(localStorage.getItem('goc_donations') || '[]');
         const events = JSON.parse(localStorage.getItem('goc_events') || '[]');
         const sermons = JSON.parse(localStorage.getItem('goc_sermons') || '[]');
@@ -52,12 +52,12 @@ export default function AdminDashboard() {
         const unreadMessages = messages.filter((m: any) => !m.read).length;
 
         const localStats: Stats = {
-          totalDonations: donations.length || 3,
-          totalRevenue: totalRevenue || 12603,
-          totalEvents: events.length || 3,
-          totalSermons: sermons.length || 3,
-          unreadMessages: unreadMessages || 0,
-          totalGalleryImages: gallery.length || 6,
+          totalDonations: donations.length,
+          totalRevenue: totalRevenue,
+          totalEvents: events.length,
+          totalSermons: sermons.length,
+          unreadMessages: unreadMessages,
+          totalGalleryImages: gallery.length,
         };
 
         // Try API
@@ -80,12 +80,12 @@ export default function AdminDashboard() {
         const unreadMessages = messages.filter((m: any) => !m.read).length;
 
         setStats({
-          totalDonations: donations.length || 3,
-          totalRevenue: totalRevenue || 12603,
-          totalEvents: events.length || 3,
-          totalSermons: sermons.length || 3,
-          unreadMessages: unreadMessages || 0,
-          totalGalleryImages: gallery.length || 6,
+          totalDonations: donations.length,
+          totalRevenue: totalRevenue,
+          totalEvents: events.length,
+          totalSermons: sermons.length,
+          unreadMessages: unreadMessages,
+          totalGalleryImages: gallery.length,
         });
       } finally {
         setLoading(false);

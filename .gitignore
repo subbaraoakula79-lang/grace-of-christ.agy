@@ -15,3 +15,8 @@ lint.json
 lint_output.txt
 seed_output.txt
 test.jpg
+backend/public/uploads/
+*.jpeg
+*.jpg
+*.png
+!frontend/public/donation_qr.png

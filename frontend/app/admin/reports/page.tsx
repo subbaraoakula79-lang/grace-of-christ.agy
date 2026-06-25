@@ -15,54 +15,63 @@ export default function AdminReportsPage() {
   const [stats, setStats] = useState<ReportStats | null>(null);
 
   useEffect(() => {
-    // Calculate summaries from localStorage fallback
-    const donations = JSON.parse(localStorage.getItem('goc_donations') || '[]');
-    const events = JSON.parse(localStorage.getItem('goc_events') || '[]');
-    const sermons = JSON.parse(localStorage.getItem('goc_sermons') || '[]');
-
-    const totalRevenue = donations.reduce((sum: number, d: any) => sum + parseFloat(d.amount || 0), 0);
-
-    setStats({
-      totalDonations: donations.length || 3,
-      totalRevenue: totalRevenue || 12603,
-      totalEvents: events.length || 3,
-      totalSermons: sermons.length || 3,
-    });
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('goc_access_token');
+        const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        
+        const res = await fetch(`${API}/reports/summary`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setStats({
+            totalDonations: data.totalDonations,
+            totalRevenue: data.totalRevenue,
+            totalEvents: data.totalEvents,
+            totalSermons: data.totalSermons
+          });
+        } else {
+          throw new Error('Failed to fetch from API');
+        }
+      } catch (err) {
+        console.error('Failed to fetch reports summary', err);
+        // Fallback calculations using localStorage
+        const donations = JSON.parse(localStorage.getItem('goc_donations') || '[]');
+        const events = JSON.parse(localStorage.getItem('goc_events') || '[]');
+        const sermons = JSON.parse(localStorage.getItem('goc_sermons') || '[]');
+        const totalRevenue = donations.reduce((sum: number, d: any) => sum + parseFloat(d.amount || 0), 0);
+        
+        setStats({
+          totalDonations: donations.length,
+          totalRevenue: totalRevenue,
+          totalEvents: events.length,
+          totalSermons: sermons.length
+        });
+      }
+    };
+    fetchStats();
   }, []);
 
-  const downloadCSV = () => {
+  const downloadCSV = async () => {
     try {
-      const stored = localStorage.getItem('goc_donations');
-      let data: Donation[] = stored ? JSON.parse(stored) : [];
-
-      if (from) {
-        const fromDate = new Date(from);
-        data = data.filter(d => new Date(d.createdAt) >= fromDate);
+      const token = localStorage.getItem('goc_access_token');
+      const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const params = new URLSearchParams({
+        ...(from && { from }),
+        ...(to && { to })
+      });
+      
+      const res = await fetch(`${API}/reports/donations/csv?${params}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to generate CSV report from server');
       }
-      if (to) {
-        const toDate = new Date(to);
-        toDate.setDate(toDate.getDate() + 1); // Make end date inclusive
-        data = data.filter(d => new Date(d.createdAt) <= toDate);
-      }
-
-      const headers = ['Receipt ID', 'Donor Name', 'Email', 'Phone', 'Amount', 'Payment Method', 'Status', 'Date'];
-      const rows = data.map(d => [
-        d.receiptId,
-        d.donorName,
-        d.email,
-        d.phone || 'N/A',
-        d.amount,
-        d.paymentMethod,
-        d.status,
-        new Date(d.createdAt).toLocaleString('en-IN')
-      ]);
-
-      const csvContent = [
-        headers.join(','), 
-        ...rows.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -71,6 +80,7 @@ export default function AdminReportsPage() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to generate CSV report', err);
+      alert('Error exporting CSV: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 

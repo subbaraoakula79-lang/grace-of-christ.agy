@@ -69,22 +69,31 @@ export default function AdminGalleryPage() {
   const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   const token = () => localStorage.getItem('goc_access_token');
 
-  const fetchImages = useCallback(() => {
+  const fetchImages = useCallback(async () => {
     setLoading(true);
     try {
-      const stored = localStorage.getItem('goc_gallery');
-      if (stored) {
-        setImages(JSON.parse(stored));
+      const res = await fetch(`${API}/gallery?limit=100`);
+      if (res.ok) {
+        const data = await res.json();
+        setImages(data.images);
+        localStorage.setItem('goc_gallery', JSON.stringify(data.images));
       } else {
-        localStorage.setItem('goc_gallery', JSON.stringify(defaultImages));
-        setImages(defaultImages);
+        // Fallback to local storage
+        const stored = localStorage.getItem('goc_gallery');
+        if (stored) setImages(JSON.parse(stored));
       }
     } catch (err) {
-      console.error('Failed to parse local gallery', err);
+      console.error('Failed to fetch gallery images from API', err);
+      const stored = localStorage.getItem('goc_gallery');
+      if (stored) {
+        try {
+          setImages(JSON.parse(stored));
+        } catch {}
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [API]);
 
   useEffect(() => {
     fetchImages();
@@ -96,48 +105,38 @@ export default function AdminGalleryPage() {
     setUploading(true); setMessage('');
     
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        
-        const newImage: GalleryImage = {
-          id: `img-${Date.now()}`,
-          imageUrl: base64,
-          publicId: `local-${Date.now()}`,
-          caption,
-          category,
-          createdAt: new Date().toISOString()
-        };
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const uploadRes = await fetch(`${API}/upload/image`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token()}` },
+        body: formData,
+      });
 
-        const stored = localStorage.getItem('goc_gallery');
-        const data: GalleryImage[] = stored ? JSON.parse(stored) : [];
-        data.unshift(newImage);
-        localStorage.setItem('goc_gallery', JSON.stringify(data));
+      if (!uploadRes.ok) {
+        throw new Error('Upload to server failed');
+      }
 
-        setMessage('✅ Image uploaded successfully!');
-        setFile(null); setCaption(''); setCategory('');
-        setUploading(false);
-        fetchImages();
+      const { url, publicId } = await uploadRes.json();
+      
+      const addRes = await fetch(`${API}/gallery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ imageUrl: url, publicId, caption, category }),
+      });
 
-        // Async API upload
-        try {
-          const formData = new FormData();
-          formData.append('image', file);
-          const uploadRes = await fetch(`${API}/upload/image`, {
-            method: 'POST', headers: { Authorization: `Bearer ${token()}` }, body: formData,
-          });
-          const { url, publicId } = await uploadRes.json();
-          await fetch(`${API}/gallery`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-            body: JSON.stringify({ imageUrl: url, publicId, caption, category }),
-          });
-        } catch {}
-      };
-      reader.readAsDataURL(file);
+      if (!addRes.ok) {
+        throw new Error('Failed to record image in database');
+      }
+
+      setMessage('✅ Image uploaded successfully!');
+      setFile(null); setCaption(''); setCategory('');
+      fetchImages();
     } catch (err) {
       console.error(err);
-      setMessage('❌ Upload failed. Please try again.');
+      setMessage('❌ Upload failed. Please check network/auth and try again.');
+    } finally {
       setUploading(false);
     }
   };
@@ -145,20 +144,18 @@ export default function AdminGalleryPage() {
   const deleteImage = async (id: string) => {
     if (!confirm('Delete this image?')) return;
     try {
-      const stored = localStorage.getItem('goc_gallery');
-      if (stored) {
-        const data: GalleryImage[] = JSON.parse(stored);
-        const filtered = data.filter(img => img.id !== id);
-        localStorage.setItem('goc_gallery', JSON.stringify(filtered));
-      }
-      fetchImages();
-
-      await fetch(`${API}/gallery/${id}`, {
+      const res = await fetch(`${API}/gallery/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token()}` }
       });
+      if (res.ok) {
+        fetchImages();
+      } else {
+        alert('Failed to delete image from database');
+      }
     } catch (err) {
-      console.warn('API sync failed, image deleted locally', err);
+      console.error('API deletion failed', err);
+      alert('Network error: Failed to delete image.');
     }
   };
 

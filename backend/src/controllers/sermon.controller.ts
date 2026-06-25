@@ -19,9 +19,10 @@ const sermonSchema = z.object({
 const mapSermon = (s: any) => ({ ...s, tags: JSON.parse(s.tags || '[]') });
 
 export async function listSermons(req: Request, res: Response): Promise<void> {
-  const { page = '1', limit = '12', search } = req.query as any;
+  const { page = '1', limit = '12', search, all } = req.query as any;
   const skip = (parseInt(page) - 1) * parseInt(limit);
-  const where: any = { isPublished: true };
+  const where: any = {};
+  if (all !== 'true') where.isPublished = true;
   if (search) {
     where.OR = [
       { title: { contains: search, mode: 'insensitive' } },

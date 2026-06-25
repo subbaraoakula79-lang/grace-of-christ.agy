@@ -60,22 +60,30 @@ export default function AdminSermonsPage() {
   const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   const token = () => localStorage.getItem('goc_access_token');
 
-  const fetchSermons = useCallback(() => {
+  const fetchSermons = useCallback(async () => {
     setLoading(true);
     try {
-      const stored = localStorage.getItem('goc_sermons');
-      if (stored) {
-        setSermons(JSON.parse(stored));
+      const res = await fetch(`${API}/sermons?all=true&limit=100`);
+      if (res.ok) {
+        const data = await res.json();
+        setSermons(data.sermons);
+        localStorage.setItem('goc_sermons', JSON.stringify(data.sermons));
       } else {
-        localStorage.setItem('goc_sermons', JSON.stringify(defaultSermons));
-        setSermons(defaultSermons);
+        const stored = localStorage.getItem('goc_sermons');
+        if (stored) setSermons(JSON.parse(stored));
       }
     } catch (err) {
-      console.error('Failed to parse local sermons', err);
+      console.error('Failed to fetch sermons from API', err);
+      const stored = localStorage.getItem('goc_sermons');
+      if (stored) {
+        try {
+          setSermons(JSON.parse(stored));
+        } catch {}
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [API]);
 
   useEffect(() => {
     fetchSermons();
@@ -106,13 +114,9 @@ export default function AdminSermonsPage() {
     setSaving(true); setError('');
     
     try {
-      const stored = localStorage.getItem('goc_sermons');
-      let data: Sermon[] = stored ? JSON.parse(stored) : [];
-
-      const newSermon: Sermon = {
-        id: editId || `serm-${Date.now()}`,
+      const sermonData = {
         title: form.title,
-        description: form.description,
+        description: form.description || undefined,
         videoUrl: form.videoUrl,
         speaker: form.speaker || 'Pastor K. John Prasad',
         date: new Date(form.date).toISOString(),
@@ -120,28 +124,24 @@ export default function AdminSermonsPage() {
         isPublished: form.isPublished
       };
 
-      if (editId) {
-        data = data.map(s => s.id === editId ? newSermon : s);
-      } else {
-        data.unshift(newSermon);
-      }
-
-      localStorage.setItem('goc_sermons', JSON.stringify(data));
-      setShowForm(false);
-      fetchSermons();
-
-      // Push to API
       const url = editId ? `${API}/sermons/${editId}` : `${API}/sermons`;
       const method = editId ? 'PUT' : 'POST';
-      await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify(newSermon)
+        body: JSON.stringify(sermonData)
       });
-    } catch (err) {
-      console.warn('API sync failed, sermon updated locally', err);
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Failed to save: ${errText}`);
+      }
+
       setShowForm(false);
       fetchSermons();
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'API sync failed. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -150,20 +150,18 @@ export default function AdminSermonsPage() {
   const deleteSermon = async (id: string) => {
     if (!confirm('Delete this sermon?')) return;
     try {
-      const stored = localStorage.getItem('goc_sermons');
-      if (stored) {
-        const data: Sermon[] = JSON.parse(stored);
-        const filtered = data.filter(s => s.id !== id);
-        localStorage.setItem('goc_sermons', JSON.stringify(filtered));
-      }
-      fetchSermons();
-
-      await fetch(`${API}/sermons/${id}`, {
+      const res = await fetch(`${API}/sermons/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token()}` }
       });
+      if (res.ok) {
+        fetchSermons();
+      } else {
+        alert('Failed to delete sermon from database');
+      }
     } catch (err) {
-      console.warn('API sync failed, sermon deleted locally', err);
+      console.error('API deletion failed', err);
+      alert('Network error: Failed to delete sermon.');
     }
   };
 

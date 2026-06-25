@@ -31,31 +31,52 @@ export default function AdminDonationsPage() {
     }
   }, []);
 
-  const fetchDonations = useCallback(() => {
+  const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const token = () => localStorage.getItem('goc_access_token');
+
+  const fetchDonations = useCallback(async () => {
     setLoading(true);
     try {
-      const stored = localStorage.getItem('goc_donations');
-      let data: Donation[] = stored ? JSON.parse(stored) : [];
-
-      if (search) {
-        const sLower = search.toLowerCase();
-        data = data.filter(d => 
-          d.donorName.toLowerCase().includes(sLower) ||
-          d.email.toLowerCase().includes(sLower) ||
-          d.receiptId.toLowerCase().includes(sLower)
-        );
+      const params = new URLSearchParams({
+        limit: '100',
+        ...(search && { search })
+      });
+      const res = await fetch(`${API}/donations?${params}`, {
+        headers: { Authorization: `Bearer ${token()}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDonations(data.donations);
+        setTotal(data.pagination.total);
+        setTotalRevenue(data.stats.totalAmount);
+        if (!search) {
+          localStorage.setItem('goc_donations', JSON.stringify(data.donations));
+        }
+      } else {
+        // Fallback
+        const stored = localStorage.getItem('goc_donations');
+        if (stored) {
+          const localData = JSON.parse(stored);
+          setDonations(localData);
+          setTotal(localData.length);
+          setTotalRevenue(localData.reduce((sum: number, d: any) => sum + parseFloat(d.amount || '0'), 0));
+        }
       }
-
-      setDonations(data);
-      setTotal(data.length);
-      const rev = data.reduce((sum, d) => sum + parseFloat(d.amount || '0'), 0);
-      setTotalRevenue(rev);
     } catch (err) {
-      console.error('Failed to load donations locally', err);
+      console.error('Failed to fetch donations from API', err);
+      const stored = localStorage.getItem('goc_donations');
+      if (stored) {
+        try {
+          const localData = JSON.parse(stored);
+          setDonations(localData);
+          setTotal(localData.length);
+          setTotalRevenue(localData.reduce((sum: number, d: any) => sum + parseFloat(d.amount || '0'), 0));
+        } catch {}
+      }
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, API]);
 
   useEffect(() => {
     fetchDonations();
