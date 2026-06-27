@@ -1,7 +1,5 @@
-'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
 
 const footerLinks = {
   Pages: [
@@ -23,71 +21,78 @@ const footerLinks = {
   ],
 };
 
-function FooterLink({ href, label }: { href: string; label: string }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <Link
-      href={href}
-      style={{ fontSize: '0.88rem', color: hovered ? 'var(--violet)' : 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {label}
-    </Link>
-  );
-}
-
 export default function Footer() {
   return (
-    <footer style={{ background: 'var(--space-mid)', borderTop: '1px solid rgba(16, 185, 129, 0.12)' }}>
+    <footer
+      role="contentinfo"
+      aria-label="Site footer"
+      style={{ background: 'var(--space-mid)', borderTop: '1px solid rgba(16, 185, 129, 0.12)' }}
+    >
       <div className="container" style={{ paddingBlock: '4rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '3rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '3rem' }}>
 
           {/* Church Info */}
           <div>
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', marginBottom: '1.25rem' }}>
-              <Image
-                src="/logo.png"
-                alt="Grace of Christ Church"
-                width={52}
-                height={52}
-                style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1.5px solid rgba(16, 185, 129, 0.25)' }}
-              />
+            <Link
+              href="/"
+              aria-label="Grace of Christ Church — Home"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', marginBottom: '1.25rem' }}
+            >
+              <div style={{
+                width: 52, height: 52, borderRadius: '50%', overflow: 'hidden',
+                flexShrink: 0, background: '#fff',
+                border: '1.5px solid rgba(16, 185, 129, 0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Image
+                  src="/logo.png"
+                  alt="Grace of Christ Church logo"
+                  width={52}
+                  height={52}
+                  style={{ objectFit: 'contain', width: '100%', height: '100%' }}
+                />
+              </div>
               <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 700, color: 'var(--violet)' }}>Grace of Christ</div>
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>GOC Church · Kakinada</div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--violet)' }}>Grace of Christ</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>GOC Church · Kakinada</div>
               </div>
             </Link>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.7, maxWidth: '220px' }}>
+            <p style={{ fontSize: '0.87rem', color: 'var(--text-secondary)', lineHeight: 1.75, maxWidth: '220px' }}>
               A spirit-filled community of believers in Yetimoga, Kakinada, Andhra Pradesh.
             </p>
-            <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <address style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontStyle: 'normal' }}>
               <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>📍 Yetimoga, Kakinada, AP</span>
               <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>👤 Pastor K. John Prasad</span>
-            </div>
+            </address>
           </div>
 
           {/* Link Columns */}
           {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
+            <nav key={title} aria-label={`${title} links`}>
               <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 600, color: 'var(--violet)', marginBottom: '1rem', letterSpacing: '0.05em' }}>
                 {title}
               </h4>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 {links.map((l, i) => (
                   <li key={`${title}-${i}`}>
-                    <FooterLink href={l.href} label={l.label} />
+                    <Link
+                      href={l.href}
+                      className="footer-link"
+                      style={{ fontSize: '0.87rem', color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
+                    >
+                      {l.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
-            </div>
+            </nav>
           ))}
         </div>
       </div>
 
       {/* Bottom Bar */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.03)', padding: '1.25rem 2rem', textAlign: 'center' }}>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', margin: 0 }}>
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', padding: '1.25rem 2rem', textAlign: 'center' }}>
+        <p style={{ fontSize: '0.79rem', color: 'var(--text-tertiary)', margin: 0 }}>
           © {new Date().getFullYear()} Grace of Christ (GOC) Church · Yetimoga, Kakinada, Andhra Pradesh, India · All Rights Reserved
         </p>
       </div>

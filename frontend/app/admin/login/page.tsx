@@ -14,8 +14,8 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true); setError('');
 
-    // Check mock credentials first
-    if (email === 'admin@graceofchrist.org' && password === 'Admin@GOC2026!') {
+    // Check mock credentials first (fallback when backend is offline)
+    if (email === 'admin@graceofchrist.org' && password === 'Graceofchrist@2026') {
       setTimeout(() => {
         localStorage.setItem('goc_access_token', 'mock_token_admin_goc_2026');
         localStorage.setItem('goc_user', JSON.stringify({ name: 'K. John Prasad', role: 'Super Admin' }));
@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
       localStorage.setItem('goc_user', JSON.stringify(data.user));
       router.push('/admin/dashboard');
     } catch (err) {
-      setError('Invalid credentials. Use demo credentials shown below.');
+      setError('Invalid email or password. Please try again.');
       setLoading(false);
     }
   };

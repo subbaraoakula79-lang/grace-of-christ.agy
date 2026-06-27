@@ -42,8 +42,9 @@ export default function HeroSection() {
   return (
     <section
       id="hero"
+      aria-label="Welcome hero section"
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -53,7 +54,7 @@ export default function HeroSection() {
       }}
     >
       {/* ── Animated Orbs ─────────────────────────────────────────── */}
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+      <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
         {/* Large emerald orb */}
         <motion.div
           animate={{
@@ -68,6 +69,7 @@ export default function HeroSection() {
             width: 500, height: 500,
             background: 'radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%)',
             filter: 'blur(50px)',
+            willChange: 'transform',
           }}
         />
         {/* Lavender orb */}
@@ -84,6 +86,7 @@ export default function HeroSection() {
             width: 400, height: 400,
             background: 'radial-gradient(circle, rgba(192,132,252,0.12) 0%, transparent 70%)',
             filter: 'blur(50px)',
+            willChange: 'transform',
           }}
         />
         {/* Ice blue orb */}
@@ -99,6 +102,7 @@ export default function HeroSection() {
             width: 350, height: 350,
             background: 'radial-gradient(circle, rgba(56,189,248,0.1) 0%, transparent 70%)',
             filter: 'blur(45px)',
+            willChange: 'transform',
           }}
         />
 

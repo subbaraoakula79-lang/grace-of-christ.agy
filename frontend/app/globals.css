@@ -55,6 +55,67 @@
   --r-pill:        9999px;
 }
 
+/* ── Light Mode Color Theme Overrides ── */
+html[data-theme="light"] {
+  /* Deep Space Background -> Fresh Light Mint Oasis */
+  --space:         #F3FAF7;
+  --space-mid:     #E6F4ED;
+  --space-light:   #DBECE3;
+
+  /* Primary Deep Emerald (highly visible in light mode) */
+  --violet:        #059669;
+  --violet-dim:    #047857;
+  --violet-glow:   rgba(5, 150, 105, 0.1);
+
+  /* Accent 1: Richer Lavender for contrast */
+  --amber:         #9333EA;
+  --amber-dim:     #6B21A8;
+  --amber-glow:    rgba(147, 51, 234, 0.1);
+
+  /* Accent 2: Ocean Blue */
+  --teal:          #0284C7;
+  --teal-dim:      #0369A1;
+  --teal-glow:     rgba(2, 132, 199, 0.08);
+
+  /* High contrast dark text colors */
+  --text-primary:  #0B1B17;
+  --text-secondary:#3D524D;
+  --text-tertiary: #6E847F;
+
+  /* Spatial Glass Tokens (opaque/light glass) */
+  --glass-1:       rgba(255, 255, 255, 0.45);
+  --glass-2:       rgba(255, 255, 255, 0.65);
+  --glass-3:       rgba(255, 255, 255, 0.85);
+  --glass-border:  rgba(5, 150, 105, 0.15);
+  --glass-border-h:rgba(5, 150, 105, 0.28);
+  --glass-glow:    inset 0 1px 0 rgba(255,255,255,0.7), inset 0 0 20px rgba(255,255,255,0.08);
+}
+
+/* Light Theme Background Overrides */
+html[data-theme="light"] body::before {
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 30%, rgba(5, 150, 105, 0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 85% 15%, rgba(147, 51, 234, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 50% at 50% 85%, rgba(2, 132, 199, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 35% at 75% 55%, rgba(5, 150, 105, 0.04) 0%, transparent 50%),
+    linear-gradient(180deg, #F3FAF7 0%, #E6F4ED 40%, #DCEFE6 100%);
+}
+
+html[data-theme="light"] body::after {
+  opacity: 0.15;
+}
+
+html[data-theme="light"] .spatial-card {
+  box-shadow: 0 8px 30px rgba(11, 27, 23, 0.06), var(--glass-glow);
+}
+
+html[data-theme="light"] .spatial-card:hover {
+  box-shadow:
+    0 20px 50px rgba(11, 27, 23, 0.12),
+    0 0 30px rgba(5, 150, 105, 0.06),
+    var(--glass-glow);
+}
+
 /* ── Reset ──────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -497,18 +558,36 @@ h1, h2, h3 {
    RESPONSIVE
    ══════════════════════════════════════════════════════════════════════════════ */
 
+/* ── Footer Link Hover ────────────────────────────────────────────────────── */
+.footer-link:hover { color: var(--violet) !important; }
+
+/* ── Focus Visible — Keyboard Accessibility ─────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(16, 185, 129, 0.6);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── Will-change hints for GPU compositing ──────────────────────────────── */
+.spatial-orb, .spatial-card:hover {
+  will-change: transform;
+}
+
 @media (max-width: 768px) {
   .desktop-nav { display: none !important; }
   .hamburger   { display: flex !important; }
   .page-header { padding-top: 120px; padding-bottom: 3rem; }
-  
+
+  /* Prevent CLS: reserve space for hero on mobile */
+  #hero { min-height: 100svh; }
+
   /* Mobile Layout Adjustments */
   .p-mobile-adjust {
     padding: 1.5rem 1.25rem !important;
   }
   .qr-modal-overlay {
     padding: 1rem !important;
-    align-items: flex-start !important; /* Allow scrolling from top on overflow */
+    align-items: flex-start !important;
     overflow-y: auto !important;
   }
   .qr-modal-inner {
@@ -521,5 +600,22 @@ h1, h2, h3 {
     height: 200px !important;
     margin-bottom: 1rem !important;
   }
+
+  /* Keep prayer timing pill readable on narrow screens */
+  .spatial-glass-mid[style*="inline-flex"] {
+    gap: 1.25rem !important;
+    padding: 1rem 1.5rem !important;
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .spatial-orb { animation: none; }
+  body::before { animation: none; }
 }
 
