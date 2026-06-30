@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function DonatePage() {
-  const [form, setForm] = useState({ donorName: '', email: '', amount: '501', notes: '' });
+  const [form, setForm] = useState({ donorName: '', email: '', amount: '', notes: '' });
   const [showQR, setShowQR] = useState(false);
   const [donationDone, setDonationDone] = useState(false);
   const [customQR, setCustomQR] = useState<string | null>(null);
@@ -20,6 +20,12 @@ export default function DonatePage() {
 
   const handleShowQR = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!form.amount || parseFloat(form.amount) <= 0) {
+      alert('Please enter a valid donation amount.');
+      return;
+    }
+
     setShowQR(true);
     setDonationDone(false);
 
@@ -31,7 +37,7 @@ export default function DonatePage() {
       donorName: form.donorName || 'Anonymous Giver',
       email: form.email || 'anonymous@graceofchrist.org',
       phone: 'N/A',
-      amount: form.amount || '0',
+      amount: form.amount,
       paymentMethod: 'UPI (QR Code)',
       status: 'SUCCESS',
       createdAt: new Date().toISOString(),
@@ -51,7 +57,7 @@ export default function DonatePage() {
   const handleDone = () => {
     setShowQR(false);
     setDonationDone(false);
-    setForm({ donorName: '', email: '', amount: '501', notes: '' });
+    setForm({ donorName: '', email: '', amount: '', notes: '' });
   };
 
   return (
@@ -105,8 +111,8 @@ export default function DonatePage() {
                 <input id="donor-email" className="input-spatial" type="email" placeholder="email@address.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
               </div>
               <div>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', letterSpacing: '0.05em', display: 'block', marginBottom: '0.4rem', fontWeight: 500 }}>Amount (₹) (Optional)</label>
-                <input id="donor-amount" className="input-spatial" type="number" min="1" placeholder="e.g. 500" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
+                <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', letterSpacing: '0.05em', display: 'block', marginBottom: '0.4rem', fontWeight: 500 }}>Amount (₹) *</label>
+                <input id="donor-amount" className="input-spatial" type="number" min="1" placeholder="e.g. 500" required value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
               </div>
               <div>
                 <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', letterSpacing: '0.05em', display: 'block', marginBottom: '0.4rem', fontWeight: 500 }}>Purpose / Prayer Request (Optional)</label>

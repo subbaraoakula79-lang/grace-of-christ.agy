@@ -143,6 +143,7 @@ export default function SermonsPage() {
                         alt={s.title}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
                         className="sermon-thumbnail"
+                        loading="lazy"
                       />
                       <div style={{
                         position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',

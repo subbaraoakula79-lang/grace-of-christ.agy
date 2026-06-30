@@ -21,8 +21,15 @@ export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsAdmin(!!localStorage.getItem('goc_access_token'));
+    }
+  }, []);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -166,14 +173,16 @@ export default function GalleryPage() {
               >
                 <div style={{ fontSize: '3.5rem', opacity: 0.5 }}>🖼</div>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
-                  Coming Soon
+                  Gallery
                 </h2>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.8, margin: 0 }}>
-                  Photos will be added here soon. Visit the admin panel to upload gallery images.
+                  No gallery images available yet. Please check back later.
                 </p>
-                <Link href="/admin/login" className="btn-spatial btn-outline" style={{ marginTop: '0.5rem' }}>
-                  Admin Panel
-                </Link>
+                {isAdmin && (
+                  <Link href="/admin/dashboard" className="btn-spatial btn-outline" style={{ marginTop: '0.5rem' }}>
+                    Go to Admin Dashboard
+                  </Link>
+                )}
               </div>
             </div>
           )}

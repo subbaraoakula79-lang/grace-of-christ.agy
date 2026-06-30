@@ -19,3 +19,4 @@ backend/public/uploads/
 *.jpg
 *.png
 !frontend/public/donation_qr.png
+!frontend/public/qr.jpeg
