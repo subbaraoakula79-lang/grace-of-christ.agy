@@ -14,16 +14,6 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true); setError('');
 
-    // Check mock credentials first (fallback when backend is offline)
-    if (email === 'admin@graceofchrist.org' && password === 'Graceofchrist@2026') {
-      setTimeout(() => {
-        localStorage.setItem('goc_access_token', 'mock_token_admin_goc_2026');
-        localStorage.setItem('goc_user', JSON.stringify({ name: 'K. John Prasad', role: 'Super Admin' }));
-        router.push('/admin/dashboard');
-      }, 600);
-      return;
-    }
-
     try {
       let API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
       if (API && !API.endsWith('/api') && !API.endsWith('/api/')) {
