@@ -58,8 +58,10 @@ const corsOptions: cors.CorsOptions = {
     const isVercelPreview = origin && /\.vercel\.app$/.test(origin);
     // Support the custom production domain graceofchrist.org
     const isCustomDomain = origin && /graceofchrist\.org$/.test(origin);
+    // Support Firebase Hosting subdomains
+    const isFirebaseHost = origin && /(\.web\.app|\.firebaseapp\.com)$/.test(origin);
 
-    if (!origin || allowed.has(origin) || isVercelPreview || isCustomDomain) {
+    if (!origin || allowed.has(origin) || isVercelPreview || isCustomDomain || isFirebaseHost) {
       callback(null, true);
     } else {
       console.warn(`CORS blocked: ${origin}`);
