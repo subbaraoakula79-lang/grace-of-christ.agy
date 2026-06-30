@@ -85,6 +85,13 @@ export const galleryAPI = {
   delete: (id: string) => api.delete(`/gallery/${id}`),
 };
 
+export const uploadAPI = {
+  uploadImage: (formData: FormData) =>
+    api.post('/upload/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+};
+
 export const contactAPI = {
   submit: (data: Record<string, unknown>) => api.post('/contact', data),
   list: (params?: Record<string, unknown>) => api.get('/contact', { params }),

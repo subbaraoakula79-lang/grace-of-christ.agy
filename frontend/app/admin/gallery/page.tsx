@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { galleryAPI, uploadAPI } from '@/lib/api';
 
 interface GalleryImage {
   id: string; imageUrl: string; publicId: string; caption?: string; category?: string; createdAt: string;
@@ -67,21 +68,13 @@ export default function AdminGalleryPage() {
   const [message, setMessage] = useState('');
 
   const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-  const token = () => localStorage.getItem('goc_access_token');
 
   const fetchImages = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/gallery?limit=100`);
-      if (res.ok) {
-        const data = await res.json();
-        setImages(data.images);
-        localStorage.setItem('goc_gallery', JSON.stringify(data.images));
-      } else {
-        // Fallback to local storage
-        const stored = localStorage.getItem('goc_gallery');
-        if (stored) setImages(JSON.parse(stored));
-      }
+      const res = await galleryAPI.list({ limit: 100 });
+      setImages(res.data.images);
+      localStorage.setItem('goc_gallery', JSON.stringify(res.data.images));
     } catch (err) {
       console.error('Failed to fetch gallery images from API', err);
       const stored = localStorage.getItem('goc_gallery');
@@ -93,7 +86,7 @@ export default function AdminGalleryPage() {
     } finally {
       setLoading(false);
     }
-  }, [API]);
+  }, []);
 
   useEffect(() => {
     fetchImages();
@@ -108,51 +101,20 @@ export default function AdminGalleryPage() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const tok = token();
-      if (!tok) {
-        setMessage('❌ Not authenticated — please log in again.');
-        setUploading(false);
-        return;
-      }
+      // 1. Upload file using Axios (auto-manages headers & retry on 401)
+      const uploadRes = await uploadAPI.uploadImage(formData);
+      const { url, publicId } = uploadRes.data;
+      
+      // 2. Save metadata to SQLite
+      await galleryAPI.add({ imageUrl: url, publicId, caption, category });
 
-      const uploadRes = await fetch(`${API}/upload/image`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${tok}` },
-        body: formData,
-      });
-
-      if (!uploadRes.ok) {
-        let errMsg = `Upload failed (HTTP ${uploadRes.status})`;
-        try {
-          const errData = await uploadRes.json();
-          errMsg = errData.error || errData.detail || errMsg;
-        } catch {}
-        throw new Error(errMsg);
-      }
-
-      const { url, publicId } = await uploadRes.json();
-
-      const addRes = await fetch(`${API}/gallery`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
-        body: JSON.stringify({ imageUrl: url, publicId, caption, category }),
-      });
-
-      if (!addRes.ok) {
-        let errMsg = `Failed to record image in database (HTTP ${addRes.status})`;
-        try {
-          const errData = await addRes.json();
-          errMsg = errData.error || errMsg;
-        } catch {}
-        throw new Error(errMsg);
-      }
-
-      setMessage('\u2705 Image uploaded successfully!');
+      setMessage('✅ Image uploaded successfully!');
       setFile(null); setCaption(''); setCategory('');
       fetchImages();
     } catch (err: any) {
       console.error(err);
-      setMessage(`\u274C Upload failed: ${err?.message || 'Unknown error. Check the browser console.'}`);
+      const errMsg = err?.response?.data?.error || err?.response?.data?.detail || err?.message || 'Unknown error during upload.';
+      setMessage(`❌ Upload failed: ${errMsg}`);
     } finally {
       setUploading(false);
     }
@@ -161,18 +123,12 @@ export default function AdminGalleryPage() {
   const deleteImage = async (id: string) => {
     if (!confirm('Delete this image?')) return;
     try {
-      const res = await fetch(`${API}/gallery/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token()}` }
-      });
-      if (res.ok) {
-        fetchImages();
-      } else {
-        alert('Failed to delete image from database');
-      }
-    } catch (err) {
+      await galleryAPI.delete(id);
+      fetchImages();
+    } catch (err: any) {
       console.error('API deletion failed', err);
-      alert('Network error: Failed to delete image.');
+      const errMsg = err?.response?.data?.error || err?.message || 'Failed to delete image.';
+      alert(`Error: ${errMsg}`);
     }
   };
 
