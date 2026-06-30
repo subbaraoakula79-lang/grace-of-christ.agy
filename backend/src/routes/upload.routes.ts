@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { v2 as cloudinary } from 'cloudinary';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdminOrEditor } from '../middlewares/rbac.middleware';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { Response } from 'express';
+import { bucket, isFirebaseConfigured } from '../utils/firebase';
 
 const router = Router();
 
-// 10 MB file limit; memory storage so we can stream directly to Cloudinary
+// 10 MB file limit; memory storage so we can stream directly to Firebase Storage
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -32,26 +32,19 @@ router.post(
       return;
     }
 
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-    const apiKey    = process.env.CLOUDINARY_API_KEY;
-    const apiSecret = process.env.CLOUDINARY_API_SECRET;
-
     // ── Dev / local fallback ─────────────────────────────────────────────────
-    const isCloudinaryConfigured =
-      cloudName && cloudName !== 'your_cloud_name' && apiKey && apiSecret;
-
-    if (!isCloudinaryConfigured) {
+    if (!isFirebaseConfigured || !bucket) {
       // Only reach here in local development (NODE_ENV !== 'production')
       if (process.env.NODE_ENV === 'production') {
         res.status(500).json({
-          error: 'Cloudinary is not configured on the server. ' +
-                 'Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET ' +
-                 'in your Render environment variables.',
+          error: 'Firebase Storage is not configured on the server. ' +
+                 'Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY, and ' +
+                 'FIREBASE_STORAGE_BUCKET in your Render environment variables.',
         });
         return;
       }
 
-      // Local dev: save to disk
+      // Local dev fallback: save to disk
       const fs   = require('fs');
       const path = require('path');
       const uploadDir = path.join(process.cwd(), 'public', 'uploads');
@@ -66,36 +59,44 @@ router.post(
       return;
     }
 
-    // ── Configure Cloudinary lazily (env vars are definitely loaded now) ─────
-    cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
-
+    // ── Firebase Storage Upload ──────────────────────────────────────────────
     try {
-      const result = await new Promise<any>((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          {
-            folder: 'goc-gallery',
-            quality: 'auto',
-            fetch_format: 'auto',
-            resource_type: 'image',
-          },
-          (err, result) => {
-            if (err) {
-              console.error('[Cloudinary] Upload error:', err);
-              reject(err);
-            } else {
-              resolve(result);
-            }
-          },
-        );
-        stream.end(req.file!.buffer);
+      const path = require('path');
+      const ext  = path.extname(req.file.originalname) || '';
+      const filename = `gallery_${Date.now()}${ext}`;
+      
+      // Store in goc-gallery folder in bucket
+      const fileUpload = bucket.file(`goc-gallery/${filename}`);
+      const blobStream = fileUpload.createWriteStream({
+        metadata: {
+          contentType: req.file.mimetype,
+          cacheControl: 'public, max-age=31536000',
+        },
       });
 
-      console.log(`[Cloudinary] Uploaded: ${result.public_id} → ${result.secure_url}`);
-      res.json({ url: result.secure_url, publicId: result.public_id });
+      await new Promise<void>((resolve, reject) => {
+        blobStream.on('error', (err) => {
+          console.error('[Firebase Storage] Upload stream error:', err);
+          reject(err);
+        });
+        blobStream.on('finish', () => {
+          resolve();
+        });
+        blobStream.end(req.file!.buffer);
+      });
+
+      // Construct direct, clean Firebase Storage public download URL:
+      // https://firebasestorage.googleapis.com/v0/b/<bucket>/o/<folder>%2F<filename>?alt=media
+      const bucketName = bucket.name;
+      const encodedFilename = encodeURIComponent(`goc-gallery/${filename}`);
+      const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodedFilename}?alt=media`;
+
+      console.log(`[Firebase Storage] Uploaded: ${filename} → ${publicUrl}`);
+      res.json({ url: publicUrl, publicId: filename });
     } catch (err: any) {
-      console.error('[Cloudinary] Upload failed:', err?.message ?? err);
+      console.error('[Firebase Storage] Upload failed:', err?.message ?? err);
       res.status(500).json({
-        error: 'Image upload to Cloudinary failed.',
+        error: 'Image upload to Firebase Storage failed.',
         detail: process.env.NODE_ENV !== 'production' ? String(err?.message ?? err) : undefined,
       });
     }
