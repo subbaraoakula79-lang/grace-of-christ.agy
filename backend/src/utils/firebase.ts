@@ -6,7 +6,9 @@ const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 const privateKey = process.env.FIREBASE_PRIVATE_KEY
   ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
   : undefined;
-const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
+const storageBucket = process.env.FIREBASE_STORAGE_BUCKET
+  ? process.env.FIREBASE_STORAGE_BUCKET.replace(/^gs:\/\//, '').trim()
+  : undefined;
 
 const isFirebaseConfigured = !!(projectId && clientEmail && privateKey && storageBucket);
 let isInitialized = false;

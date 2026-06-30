@@ -23,7 +23,10 @@ export default function GalleryPage() {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  let API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  if (API && !API.endsWith('/api') && !API.endsWith('/api/')) {
+    API = `${API.replace(/\/+$/, '')}/api`;
+  }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
