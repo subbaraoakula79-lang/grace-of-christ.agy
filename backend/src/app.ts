@@ -55,7 +55,11 @@ const corsOptions: cors.CorsOptions = {
       process.env.FRONTEND_URL.split(',').map((u) => u.trim()).forEach((u) => allowed.add(u));
     }
     // Vercel preview deployments follow the pattern *.vercel.app — allow them too
-    if (!origin || allowed.has(origin) || /\.vercel\.app$/.test(origin)) {
+    const isVercelPreview = origin && /\.vercel\.app$/.test(origin);
+    // Support the custom production domain graceofchrist.org
+    const isCustomDomain = origin && /graceofchrist\.org$/.test(origin);
+
+    if (!origin || allowed.has(origin) || isVercelPreview || isCustomDomain) {
       callback(null, true);
     } else {
       console.warn(`CORS blocked: ${origin}`);
