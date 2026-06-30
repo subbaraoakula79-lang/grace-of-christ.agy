@@ -75,7 +75,7 @@ router.post(
       });
 
       await new Promise<void>((resolve, reject) => {
-        blobStream.on('error', (err) => {
+        blobStream.on('error', (err: any) => {
           console.error('[Firebase Storage] Upload stream error:', err);
           reject(err);
         });

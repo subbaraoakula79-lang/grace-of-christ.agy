@@ -18,7 +18,7 @@ router.get('/donations/csv', authenticate, requireAdminOrEditor, async (req: Aut
 
   const csv = [
     ['Receipt ID', 'Donor Name', 'Email', 'Phone', 'Amount (INR)', 'Payment Method', 'Date'].join(','),
-    ...donations.map((d) =>
+    ...donations.map((d: any) =>
       [
         d.receiptId, `"${d.donorName}"`, d.email, d.phone,
         Number(d.amount).toFixed(2), d.paymentMethod,

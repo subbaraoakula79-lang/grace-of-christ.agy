@@ -1,4 +1,5 @@
-import * as admin from 'firebase-admin';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getStorage } from 'firebase-admin/storage';
 
 const projectId = process.env.FIREBASE_PROJECT_ID;
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
@@ -12,9 +13,9 @@ const isFirebaseConfigured = !!(projectId && clientEmail && privateKey && storag
 if (isFirebaseConfigured) {
   try {
     // Prevent duplicate initializations
-    if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
+    if (getApps().length === 0) {
+      initializeApp({
+        credential: cert({
           projectId,
           clientEmail,
           privateKey,
@@ -30,5 +31,5 @@ if (isFirebaseConfigured) {
   console.warn('⚠️ Firebase Storage is not fully configured in env variables.');
 }
 
-export const bucket = isFirebaseConfigured ? admin.storage().bucket() : null;
+export const bucket = isFirebaseConfigured ? getStorage().bucket() : null;
 export { isFirebaseConfigured };
