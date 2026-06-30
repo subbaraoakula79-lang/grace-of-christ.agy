@@ -176,7 +176,7 @@ export default function DonatePage() {
                     overflow: 'hidden'
                   }}>
                     <img 
-                      src={customQR || '/qr.jpeg'} 
+                      src={customQR || '/qr.jpeg.jpeg'} 
                       alt="Donation QR Code" 
                       style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
                     />
