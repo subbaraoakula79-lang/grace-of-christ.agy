@@ -9,6 +9,7 @@ const privateKey = process.env.FIREBASE_PRIVATE_KEY
 const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
 
 const isFirebaseConfigured = !!(projectId && clientEmail && privateKey && storageBucket);
+let isInitialized = false;
 
 if (isFirebaseConfigured) {
   try {
@@ -22,8 +23,9 @@ if (isFirebaseConfigured) {
         }),
         storageBucket,
       });
-      console.log('✅ Firebase Admin SDK initialized successfully');
     }
+    isInitialized = true;
+    console.log('✅ Firebase Admin SDK initialized successfully');
   } catch (error) {
     console.error('❌ Failed to initialize Firebase Admin:', error);
   }
@@ -31,5 +33,17 @@ if (isFirebaseConfigured) {
   console.warn('⚠️ Firebase Storage is not fully configured in env variables.');
 }
 
-export const bucket = isFirebaseConfigured ? getStorage().bucket() : null;
+// Lazy getter for the bucket to prevent module-load crashes if configuration fails or is incomplete
+export const getBucket = () => {
+  if (isFirebaseConfigured && isInitialized) {
+    try {
+      return getStorage().bucket();
+    } catch (e) {
+      console.error('Failed to get Firebase storage bucket:', e);
+      return null;
+    }
+  }
+  return null;
+};
+
 export { isFirebaseConfigured };

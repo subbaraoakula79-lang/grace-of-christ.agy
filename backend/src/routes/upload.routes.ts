@@ -4,7 +4,7 @@ import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdminOrEditor } from '../middlewares/rbac.middleware';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { Response } from 'express';
-import { bucket, isFirebaseConfigured } from '../utils/firebase';
+import { getBucket, isFirebaseConfigured } from '../utils/firebase';
 
 const router = Router();
 
@@ -31,6 +31,8 @@ router.post(
       res.status(400).json({ error: 'No file provided' });
       return;
     }
+
+    const bucket = getBucket();
 
     // ── Dev / local fallback ─────────────────────────────────────────────────
     if (!isFirebaseConfigured || !bucket) {
