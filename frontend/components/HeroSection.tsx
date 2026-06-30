@@ -51,6 +51,8 @@ export default function HeroSection() {
         position: 'relative',
         overflow: 'hidden',
         paddingTop: '76px',
+        /* Clamp the section itself so no child can break out */
+        maxWidth: '100vw',
       }}
     >
       {/* ── Animated Orbs ─────────────────────────────────────────── */}
@@ -66,7 +68,7 @@ export default function HeroSection() {
           style={{
             position: 'absolute',
             top: '10%', left: '5%',
-            width: 500, height: 500,
+            width: 'clamp(200px, 40vw, 500px)', height: 'clamp(200px, 40vw, 500px)',
             background: 'radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 70%)',
             filter: 'blur(50px)',
             willChange: 'transform',
@@ -83,7 +85,7 @@ export default function HeroSection() {
           style={{
             position: 'absolute',
             bottom: '15%', right: '5%',
-            width: 400, height: 400,
+            width: 'clamp(160px, 32vw, 400px)', height: 'clamp(160px, 32vw, 400px)',
             background: 'radial-gradient(circle, rgba(192,132,252,0.12) 0%, transparent 70%)',
             filter: 'blur(50px)',
             willChange: 'transform',
@@ -99,7 +101,7 @@ export default function HeroSection() {
           style={{
             position: 'absolute',
             top: '50%', left: '60%',
-            width: 350, height: 350,
+            width: 'clamp(140px, 28vw, 350px)', height: 'clamp(140px, 28vw, 350px)',
             background: 'radial-gradient(circle, rgba(56,189,248,0.1) 0%, transparent 70%)',
             filter: 'blur(45px)',
             willChange: 'transform',
@@ -256,13 +258,14 @@ export default function HeroSection() {
           className="spatial-glass-mid"
           style={{
             display: 'inline-flex',
-            gap: '2.5rem',
+            gap: 'clamp(1rem, 4vw, 2.5rem)',
             flexWrap: 'wrap',
             justifyContent: 'center',
-            padding: '1.2rem 2.75rem',
+            padding: 'clamp(0.85rem, 3vw, 1.2rem) clamp(1rem, 5vw, 2.75rem)',
             borderRadius: 'var(--r-pill)',
             marginTop: '4.5rem',
             border: '1px solid rgba(16, 185, 129, 0.15)',
+            maxWidth: 'calc(100vw - 2rem)',
           }}
         >
           <div style={{ textAlign: 'center' }}>

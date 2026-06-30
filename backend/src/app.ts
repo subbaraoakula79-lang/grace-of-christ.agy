@@ -27,7 +27,7 @@ app.use(
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
         imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com', 'https://img.youtube.com', 'http://localhost:5000', 'http://localhost:3000'],
-        connectSrc: ["'self'"],
+        connectSrc: ["'self'", 'https://api.cloudinary.com', 'https://res.cloudinary.com'],
         fontSrc: ["'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
         frameSrc: ["'self'", 'https://www.youtube.com'],
         formAction: ["'self'"],
@@ -43,13 +43,22 @@ app.use(
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    const allowedOrigins = [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
+    // Build the allowed origins list from environment variables.
+    // FRONTEND_URL should be set on Render to your full Vercel domain,
+    // e.g. https://grace-of-christ.vercel.app
+    const allowed = new Set<string>([
       'http://localhost:3000',
-    ];
-    if (!origin || allowedOrigins.includes(origin)) {
+      'http://localhost:3001',
+    ]);
+    // Support multiple comma-separated frontend URLs (e.g. preview + prod)
+    if (process.env.FRONTEND_URL) {
+      process.env.FRONTEND_URL.split(',').map((u) => u.trim()).forEach((u) => allowed.add(u));
+    }
+    // Vercel preview deployments follow the pattern *.vercel.app — allow them too
+    if (!origin || allowed.has(origin) || /\.vercel\.app$/.test(origin)) {
       callback(null, true);
     } else {
+      console.warn(`CORS blocked: ${origin}`);
       callback(new Error(`CORS: Origin ${origin} not allowed`));
     }
   },

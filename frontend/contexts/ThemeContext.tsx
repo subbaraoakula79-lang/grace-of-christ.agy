@@ -9,16 +9,16 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
+  theme: 'light',
   toggleTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('light');
 
   // On mount, read saved preference and apply it
   useEffect(() => {
-    const saved = (localStorage.getItem('goc_theme') as Theme | null) || 'dark';
+    const saved = (localStorage.getItem('goc_theme') as Theme | null) || 'light';
     setTheme(saved);
     document.documentElement.setAttribute('data-theme', saved);
   }, []);

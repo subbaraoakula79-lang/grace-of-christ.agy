@@ -107,35 +107,52 @@ export default function AdminGalleryPage() {
     try {
       const formData = new FormData();
       formData.append('image', file);
-      
+
+      const tok = token();
+      if (!tok) {
+        setMessage('❌ Not authenticated — please log in again.');
+        setUploading(false);
+        return;
+      }
+
       const uploadRes = await fetch(`${API}/upload/image`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token()}` },
+        headers: { Authorization: `Bearer ${tok}` },
         body: formData,
       });
 
       if (!uploadRes.ok) {
-        throw new Error('Upload to server failed');
+        let errMsg = `Upload failed (HTTP ${uploadRes.status})`;
+        try {
+          const errData = await uploadRes.json();
+          errMsg = errData.error || errData.detail || errMsg;
+        } catch {}
+        throw new Error(errMsg);
       }
 
       const { url, publicId } = await uploadRes.json();
-      
+
       const addRes = await fetch(`${API}/gallery`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
         body: JSON.stringify({ imageUrl: url, publicId, caption, category }),
       });
 
       if (!addRes.ok) {
-        throw new Error('Failed to record image in database');
+        let errMsg = `Failed to record image in database (HTTP ${addRes.status})`;
+        try {
+          const errData = await addRes.json();
+          errMsg = errData.error || errMsg;
+        } catch {}
+        throw new Error(errMsg);
       }
 
-      setMessage('✅ Image uploaded successfully!');
+      setMessage('\u2705 Image uploaded successfully!');
       setFile(null); setCaption(''); setCategory('');
       fetchImages();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setMessage('❌ Upload failed. Please check network/auth and try again.');
+      setMessage(`\u274C Upload failed: ${err?.message || 'Unknown error. Check the browser console.'}`);
     } finally {
       setUploading(false);
     }

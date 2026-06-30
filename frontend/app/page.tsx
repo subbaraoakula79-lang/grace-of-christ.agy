@@ -32,7 +32,7 @@ export default function HomePage() {
         {/* Decorative subtle gradient background circle */}
         <div style={{
           position: 'absolute', top: '10%', left: '-10%',
-          width: '450px', height: '450px', borderRadius: '50%',
+          width: 'clamp(200px, 40vw, 450px)', height: 'clamp(200px, 40vw, 450px)', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(192, 132, 252, 0.06), transparent 70%)',
           filter: 'blur(50px)', pointerEvents: 'none'
         }} />
@@ -81,10 +81,10 @@ export default function HomePage() {
       </section>
 
       {/* ── Ministries Preview ────────────────────────────────────────────────── */}
-      <section className="section" style={{ background: 'var(--space)', position: 'relative' }}>
+      <section className="section" style={{ background: 'var(--space)', position: 'relative', overflow: 'hidden' }}>
         <div style={{
           position: 'absolute', bottom: '0%', right: '-10%',
-          width: '500px', height: '500px', borderRadius: '50%',
+          width: 'clamp(200px, 42vw, 500px)', height: 'clamp(200px, 42vw, 500px)', borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(56, 189, 248, 0.05), transparent 70%)',
           filter: 'blur(50px)', pointerEvents: 'none'
         }} />
