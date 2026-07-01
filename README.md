@@ -56,8 +56,7 @@ npm run dev          # Starts at http://localhost:3000
 | Field    | Value                         |
 |----------|-------------------------------|
 | URL      | http://localhost:3000/admin/login |
-| Email    | admin@graceofchrist.org       |
-| Password | Admin@GOC2024!                |
+
 
 ---
 
