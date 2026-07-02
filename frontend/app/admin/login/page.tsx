@@ -32,8 +32,12 @@ export default function AdminLoginPage() {
       localStorage.setItem('goc_access_token', data.accessToken);
       localStorage.setItem('goc_user', JSON.stringify(data.user));
       router.push('/admin/dashboard');
-    } catch (err) {
-      setError('Invalid email or password. Please try again.');
+    } catch (err: any) {
+      if (err.message === 'Invalid credentials') {
+        setError('Invalid email or password. Please try again.');
+      } else {
+        setError(err.message || 'An unexpected error occurred. Please try again.');
+      }
       setLoading(false);
     }
   };
