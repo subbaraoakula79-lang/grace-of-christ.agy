@@ -6,23 +6,24 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id            String     @id @default(cuid())
-  name          String
-  email         String     @unique
-  password      String
-  role          String     @default("EDITOR") // Enums Role not supported in SQLite
-  totpSecret    String?
-  totpEnabled   Boolean    @default(false)
-  refreshToken  String?
-  lastLoginAt   DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  auditLogs     AuditLog[]
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  password     String
+  role         String     @default("EDITOR")
+  totpSecret   String?
+  totpEnabled  Boolean    @default(false)
+  refreshToken String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
 
   @@map("users")
 }
@@ -43,49 +44,49 @@ model Event {
 }
 
 model Sermon {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  videoUrl    String
+  id           String   @id @default(cuid())
+  title        String
+  description  String?
+  videoUrl     String
   thumbnailUrl String?
-  speaker     String
-  date        DateTime
-  duration    String?
-  tags        String   @default("[]") // String[] not supported in SQLite, storing as JSON string
-  isPublished Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  speaker      String
+  date         DateTime
+  duration     String?
+  tags         String[] @default([])
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("sermons")
 }
 
 model GalleryImage {
-  id          String   @id @default(cuid())
-  imageUrl    String
-  publicId    String   // Cloudinary public_id
-  caption     String?
-  category    String?
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  imageUrl  String
+  publicId  String
+  caption   String?
+  category  String?
+  createdAt DateTime @default(now())
 
   @@map("gallery")
 }
 
 model Donation {
-  id            String         @id @default(cuid())
-  donorName     String
-  email         String
-  phone         String
-  amount        Float          // Decimal not supported in SQLite like Postgres
-  currency      String         @default("INR")
-  paymentMethod String
-  receiptId     String         @unique
-  razorpayOrderId  String?
+  id                String   @id @default(cuid())
+  donorName         String
+  email             String
+  phone             String
+  amount            Decimal  @db.Decimal(12, 2)
+  currency          String   @default("INR")
+  paymentMethod     String
+  receiptId         String   @unique
+  razorpayOrderId   String?
   razorpayPaymentId String?
-  mockPaymentId    String?
-  status        String         @default("PENDING") // Enum DonationStatus
-  notes         String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  mockPaymentId     String?
+  status            String   @default("PENDING")
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([email])
   @@index([createdAt])
@@ -109,10 +110,10 @@ model AuditLog {
   id         String   @id @default(cuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id])
-  action     String   // e.g. "CREATE_EVENT", "DELETE_IMAGE", "VIEW_DONATIONS"
-  resource   String   // e.g. "Event", "Gallery", "Donation"
+  action     String
+  resource   String
   resourceId String?
-  metadata   String?  // Json type not supported in SQLite, storing as JSON string
+  metadata   Json?
   ipAddress  String?
   createdAt  DateTime @default(now())
 

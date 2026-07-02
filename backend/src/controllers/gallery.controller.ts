@@ -3,13 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../utils/prisma';
 import { createError } from '../middlewares/error.middleware';
 import { AuthRequest } from '../middlewares/auth.middleware';
-import { v2 as cloudinary } from 'cloudinary';
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { getBucket, isFirebaseConfigured } from '../utils/firebase';
 
 export async function listGallery(req: Request, res: Response): Promise<void> {
   const { page = '1', limit = '24', category } = req.query as any;
@@ -40,9 +34,19 @@ export async function deleteGalleryImage(req: AuthRequest, res: Response): Promi
   const image = await prisma.galleryImage.findUnique({ where: { id: req.params.id } });
   if (!image) throw createError('Image not found', 404);
 
-  // Delete from Cloudinary
-  if (process.env.CLOUDINARY_CLOUD_NAME) {
-    await cloudinary.uploader.destroy(image.publicId).catch(console.error);
+  // Delete from Firebase Storage if configured
+  if (isFirebaseConfigured) {
+    const bucket = getBucket();
+    if (bucket && image.publicId) {
+      // publicId stored as filename, e.g. "gallery_1234567890.jpg"
+      // Full path in bucket is "goc-gallery/<publicId>"
+      const filePath = image.publicId.startsWith('goc-gallery/')
+        ? image.publicId
+        : `goc-gallery/${image.publicId}`;
+      await bucket.file(filePath).delete().catch((err: any) =>
+        console.error('[Firebase Storage] Delete failed (file may not exist):', err?.message)
+      );
+    }
   }
 
   await prisma.galleryImage.delete({ where: { id: req.params.id } });

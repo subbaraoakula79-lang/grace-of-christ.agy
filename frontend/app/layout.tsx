@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Cormorant_Garamond, Inter } from 'next/font/google';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import './globals.css';
@@ -16,6 +16,10 @@ const inter = Inter({
   display: 'swap',
 });
 
+export const viewport: Viewport = {
+  themeColor: '#070D0C',
+};
+
 export const metadata: Metadata = {
   title: {
     default: 'Grace of Christ Church | Yetimoga, Kakinada',
@@ -24,7 +28,6 @@ export const metadata: Metadata = {
   description:
     'Grace of Christ (GOC) — A spirit-filled church in Yetimoga, Kakinada, Andhra Pradesh. Led by Pastor K. John Prasad. Join us for worship, prayer, and community.',
   keywords: ['Grace of Christ', 'GOC Church', 'Kakinada', 'Yetimoga', 'Andhra Pradesh', 'Church', 'Pastor John Prasad'],
-  themeColor: '#070D0C',
   openGraph: {
     type: 'website',
     locale: 'en_IN',

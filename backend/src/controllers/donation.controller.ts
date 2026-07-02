@@ -192,7 +192,7 @@ export async function getDonationStats(req: AuthRequest, res: Response): Promise
     prisma.donation.count(),
     prisma.donation.count({ where: { status: 'SUCCESS' } }),
     prisma.donation.aggregate({ where: { status: 'SUCCESS' }, _sum: { amount: true } }),
-    // SQLite-compatible: fetch last 12 months of donations and group in JS
+    // Fetch last 12 months of donations and group by month
     prisma.donation.findMany({
       where: { status: 'SUCCESS', createdAt: { gte: twelveMonthsAgo } },
       select: { amount: true, createdAt: true },
