@@ -105,7 +105,7 @@ export default function AdminGalleryPage() {
       const uploadRes = await uploadAPI.uploadImage(formData);
       const { url, publicId } = uploadRes.data;
       
-      // 2. Save metadata to SQLite
+      // 2. Save metadata to database
       await galleryAPI.add({ imageUrl: url, publicId, caption, category });
 
       setMessage('✅ Image uploaded successfully!');

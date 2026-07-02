@@ -200,7 +200,7 @@ export async function getDonationStats(req: AuthRequest, res: Response): Promise
     }),
   ]);
 
-  // Group by year-month in JavaScript (SQLite doesn't support DATE_TRUNC)
+  // Group by year-month in JavaScript for database compatibility
   const monthlyMap = new Map<string, { total: number; count: number }>();
   for (const d of recentDonations) {
     const key = `${d.createdAt.getFullYear()}-${String(d.createdAt.getMonth() + 1).padStart(2, '0')}`;
