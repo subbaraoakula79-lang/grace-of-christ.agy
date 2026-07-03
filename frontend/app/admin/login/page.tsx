@@ -14,11 +14,12 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true); setError('');
 
+    let API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    if (API && !API.endsWith('/api') && !API.endsWith('/api/')) {
+      API = `${API.replace(/\/+$/, '')}/api`;
+    }
+
     try {
-      let API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      if (API && !API.endsWith('/api') && !API.endsWith('/api/')) {
-        API = `${API.replace(/\/+$/, '')}/api`;
-      }
       const res = await fetch(`${API}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,10 +34,15 @@ export default function AdminLoginPage() {
       localStorage.setItem('goc_user', JSON.stringify(data.user));
       router.push('/admin/dashboard');
     } catch (err: any) {
+      const isLocalhost = API.includes('localhost') || API.includes('127.0.0.1');
+      const isProduction = typeof window !== 'undefined' && !window.location.hostname.includes('localhost');
+      
       if (err.message === 'Invalid credentials') {
         setError('Invalid email or password. Please try again.');
+      } else if (isLocalhost && isProduction) {
+        setError('Connection error: The login page is attempting to connect to a local server (localhost) from a live site. Please configure the NEXT_PUBLIC_API_URL environment variable in your Vercel project settings and trigger a Redeploy.');
       } else {
-        setError(err.message || 'An unexpected error occurred. Please try again.');
+        setError(err.message || 'An unexpected connection error occurred. Please make sure the backend is active.');
       }
       setLoading(false);
     }
