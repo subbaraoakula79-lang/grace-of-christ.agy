@@ -1,17 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
 
+import { ZodError } from 'zod';
+
 export interface AppError extends Error {
   statusCode?: number;
   isOperational?: boolean;
 }
 
 export function errorHandler(
-  err: AppError | Prisma.PrismaClientKnownRequestError | Prisma.PrismaClientInitializationError,
+  err: any,
   req: Request,
   res: Response,
   _next: NextFunction
 ): void {
+  // ── Zod Validation Errors ──────────────────────────────────────────────────────
+  if (err instanceof ZodError) {
+    const details = err.errors.map((e) => ({
+      field: e.path.join('.'),
+      message: e.message,
+    }));
+    res.status(400).json({ error: 'Validation failed', details });
+    return;
+  }
   // ── Prisma Known Request Errors ───────────────────────────────────────────────
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     switch (err.code) {
@@ -59,7 +70,8 @@ export function errorHandler(
   const statusCode = appErr.statusCode || 500;
   const message = appErr.message || 'Internal Server Error';
 
-  if (process.env.NODE_ENV === 'development') {
+  // Log 500 errors or dev errors to console
+  if (statusCode === 500 || process.env.NODE_ENV === 'development') {
     console.error(`[ERROR] ${req.method} ${req.path}:`, err);
   }
 
