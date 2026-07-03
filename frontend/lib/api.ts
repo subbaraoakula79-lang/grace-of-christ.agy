@@ -52,6 +52,7 @@ export const authAPI = {
     api.post('/auth/login', { email, password, totpToken }),
   logout: () => api.post('/auth/logout'),
   me: () => api.get('/auth/me'),
+  updateProfile: (data: Record<string, unknown>) => api.put('/auth/profile', data),
   setupTOTP: () => api.post('/auth/totp/setup'),
   verifyTOTP: (token: string) => api.post('/auth/totp/verify', { token }),
 };

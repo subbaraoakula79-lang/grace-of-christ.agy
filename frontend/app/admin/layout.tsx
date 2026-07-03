@@ -11,6 +11,7 @@ const navItems = [
   { href: '/admin/gallery', label: 'Gallery', icon: '🖼' },
   { href: '/admin/messages', label: 'Messages', icon: '✉️' },
   { href: '/admin/reports', label: 'Reports', icon: '📈' },
+  { href: '/admin/settings', label: 'Settings', icon: '⚙️' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

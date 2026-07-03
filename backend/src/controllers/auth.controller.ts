@@ -129,3 +129,49 @@ export async function getMe(req: AuthRequest, res: Response): Promise<void> {
   });
   res.json(user);
 }
+
+const updateProfileSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+  email: z.string().email().optional(),
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(8).optional(),
+});
+
+export async function updateProfile(req: AuthRequest, res: Response): Promise<void> {
+  const userId = req.user!.userId;
+  const { name, email, currentPassword, newPassword } = updateProfileSchema.parse(req.body);
+
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+
+  const updateData: any = {};
+  if (name) updateData.name = name;
+
+  if (email && email !== user.email) {
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) throw createError('Email already in use', 400);
+    updateData.email = email;
+  }
+
+  if (newPassword) {
+    if (!currentPassword) {
+      throw createError('Current password is required to change password', 400);
+    }
+    const valid = await comparePassword(currentPassword, user.password);
+    if (!valid) throw createError('Invalid current password', 400);
+
+    updateData.password = await hashPassword(newPassword);
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    throw createError('No update fields provided', 400);
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: updateData,
+    select: { id: true, name: true, email: true, role: true, totpEnabled: true },
+  });
+
+  res.json({ message: 'Profile updated successfully', user: updatedUser });
+}
+

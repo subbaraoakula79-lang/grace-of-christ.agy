@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
-import { login, refreshToken, logout, setupTOTP, verifyTOTPSetup, getMe } from '../controllers/auth.controller';
+import { login, refreshToken, logout, setupTOTP, verifyTOTPSetup, getMe, updateProfile } from '../controllers/auth.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { validate } from '../middlewares/validation.middleware';
 import { z } from 'zod';
@@ -19,6 +19,7 @@ router.post('/login', authLimiter, login);
 router.post('/refresh', refreshToken);
 router.post('/logout', authenticate, logout);
 router.get('/me', authenticate, getMe);
+router.put('/profile', authenticate, updateProfile);
 router.post('/totp/setup', authenticate, setupTOTP);
 router.post('/totp/verify', authenticate, verifyTOTPSetup);
 
