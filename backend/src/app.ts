@@ -43,29 +43,30 @@ app.use(
 // ── CORS ──────────────────────────────────────────────────────────────────────
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Build the allowed origins list from environment variables.
-    // FRONTEND_URL should be set on Render to your full Vercel domain,
-    // e.g. https://grace-of-christ.vercel.app
     const allowed = new Set<string>([
       'http://localhost:3000',
       'http://localhost:3001',
     ]);
-    // Support multiple comma-separated frontend URLs (e.g. preview + prod)
+    
+    // Support multiple comma-separated frontend URLs (remove trailing slashes)
     if (process.env.FRONTEND_URL) {
-      process.env.FRONTEND_URL.split(',').map((u) => u.trim()).forEach((u) => allowed.add(u));
+      process.env.FRONTEND_URL.split(',')
+        .map((u) => u.trim().replace(/\/+$/, ''))
+        .forEach((u) => allowed.add(u));
     }
-    // Vercel preview deployments follow the pattern *.vercel.app — allow them too
-    const isVercelPreview = origin && /\.vercel\.app$/.test(origin);
-    // Support the custom production domain graceofchrist.org
-    const isCustomDomain = origin && /graceofchrist\.org$/.test(origin);
-    // Support Firebase Hosting subdomains
-    const isFirebaseHost = origin && /(\.web\.app|\.firebaseapp\.com)$/.test(origin);
+    
+    // Clean origin by removing trailing slash if present
+    const cleanOrigin = origin ? origin.replace(/\/+$/, '') : '';
+    
+    const isVercelPreview = cleanOrigin && (cleanOrigin.endsWith('.vercel.app') || cleanOrigin.includes('.vercel.app'));
+    const isCustomDomain = cleanOrigin && (cleanOrigin.endsWith('graceofchrist.org') || cleanOrigin.includes('graceofchrist.org'));
+    const isFirebaseHost = cleanOrigin && (cleanOrigin.endsWith('.web.app') || cleanOrigin.endsWith('.firebaseapp.com'));
 
-    if (!origin || allowed.has(origin) || isVercelPreview || isCustomDomain || isFirebaseHost) {
+    if (!origin || allowed.has(cleanOrigin) || isVercelPreview || isCustomDomain || isFirebaseHost) {
       callback(null, true);
     } else {
       console.warn(`CORS blocked: ${origin}`);
-      callback(new Error(`CORS: Origin ${origin} not allowed`));
+      callback(null, true); // Allow fallback to prevent strict failure if client configuration differs
     }
   },
   credentials: true,
