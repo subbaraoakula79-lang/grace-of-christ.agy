@@ -70,19 +70,24 @@ export function errorHandler(
   const statusCode = appErr.statusCode || 500;
   const message = appErr.message || 'Internal Server Error';
 
-  // Log 500 errors or dev errors to console
-  if (statusCode === 500 || process.env.NODE_ENV === 'development') {
-    console.error(`[ERROR] ${req.method} ${req.path}:`, err);
+  // Log 500 errors with full stack trace always
+  if (statusCode === 500) {
+    console.error(`[ERROR 500] ${req.method} ${req.path}:`, err);
+  } else if (process.env.NODE_ENV === 'development') {
+    console.error(`[ERROR ${statusCode}] ${req.method} ${req.path}: ${message}`);
   }
 
+  // Operational errors (created via createError) always return the real message.
+  // Only mask truly unexpected non-operational 500s in production.
+  const isUnexpected500 = statusCode === 500 && !appErr.isOperational;
   const responseMessage =
-    statusCode === 500 && process.env.NODE_ENV === 'production'
-      ? 'Something went wrong. Please try again later.'
+    isUnexpected500 && process.env.NODE_ENV === 'production'
+      ? 'An unexpected error occurred. Please try again later.'
       : message;
 
   res.status(statusCode).json({
     error: responseMessage,
-    ...(process.env.NODE_ENV === 'development' && { stack: appErr.stack }),
+    ...(process.env.NODE_ENV === 'development' && statusCode === 500 && { stack: appErr.stack }),
   });
 }
 

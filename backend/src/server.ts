@@ -5,29 +5,53 @@ import bcrypt from 'bcryptjs';
 
 const PORT = parseInt(process.env.PORT || '5000', 10);
 
+// ── Validate required environment variables ───────────────────────────────────
+function validateEnv() {
+  const required = ['DATABASE_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
+  const missing = required.filter((k) => !process.env[k]);
+  if (missing.length > 0) {
+    console.error(`❌ Missing required environment variables: ${missing.join(', ')}`);
+    console.error('   Set them in your .env file (local) or Render dashboard (production).');
+    process.exit(1);
+  }
+}
+
+// ── Ensure admin user exists (only creates if not present) ────────────────────
 async function ensureAdminUser() {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@graceofchrist.org';
   const adminPassword = process.env.ADMIN_PASSWORD || 'Graceofchrist@2026';
 
   try {
+    // Check if admin already exists — do NOT overwrite the password on update.
+    // Re-hashing on every restart would invalidate the stored hash and break login.
+    const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+
+    if (existing) {
+      console.log(`✅ Admin user already exists: ${adminEmail}`);
+      return;
+    }
+
+    // Only hash and create if the admin doesn't exist yet
     const hashed = await bcrypt.hash(adminPassword, 12);
-    await prisma.user.upsert({
-      where: { email: adminEmail },
-      update: { password: hashed },
-      create: {
+    await prisma.user.create({
+      data: {
         name: 'K. John Prasad',
         email: adminEmail,
         password: hashed,
         role: 'ADMIN',
       },
     });
-    console.log(`✅ Admin user ensured: ${adminEmail}`);
-  } catch (err) {
-    console.error('⚠️ Could not upsert admin user:', err);
+    console.log(`✅ Admin user created: ${adminEmail}`);
+    console.log(`   Default password set — change it via /admin/settings after first login.`);
+  } catch (err: any) {
+    console.error('⚠️ Could not ensure admin user:', err?.message || err);
   }
 }
 
 async function bootstrap() {
+  // Fail fast if required env vars are missing
+  validateEnv();
+
   let dbConnected = false;
 
   // Attempt database connection (non-fatal in dev if unreachable)

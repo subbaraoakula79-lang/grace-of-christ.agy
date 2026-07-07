@@ -26,23 +26,51 @@ export default function AdminLoginPage() {
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error || 'Login failed');
+      // Always try to parse JSON — handle non-JSON responses gracefully
+      let data: any = {};
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        console.error('[Login] Non-JSON response from server:', text);
+        data = { error: `Server error (${res.status}): ${text.slice(0, 200)}` };
+      }
+
+      console.log(`[Login] ${res.status} response:`, data);
+
+      if (!res.ok) {
+        // Surface the real server error — never swallow it
+        const serverMsg = data?.error || data?.message || `Server responded with ${res.status}`;
+
+        if (res.status === 429) {
+          throw new Error('Too many login attempts. Please wait 15 minutes and try again.');
+        } else if (res.status === 503) {
+          throw new Error('Database is temporarily unavailable. Please try again shortly.');
+        } else {
+          throw new Error(serverMsg);
+        }
+      }
 
       localStorage.setItem('goc_access_token', data.accessToken);
       localStorage.setItem('goc_user', JSON.stringify(data.user));
       router.push('/admin/dashboard');
     } catch (err: any) {
-      const isLocalhost = API.includes('localhost') || API.includes('127.0.0.1');
-      const isProduction = typeof window !== 'undefined' && !window.location.hostname.includes('localhost');
-      
-      if (err.message === 'Invalid credentials') {
-        setError('Invalid email or password. Please try again.');
-      } else if (isLocalhost && isProduction) {
-        setError('Connection error: The login page is attempting to connect to a local server (localhost) from a live site. Please configure the NEXT_PUBLIC_API_URL environment variable in your Vercel project settings and trigger a Redeploy.');
+      console.error('[Login] Error:', err);
+
+      const isLocalhostAPI = API.includes('localhost') || API.includes('127.0.0.1');
+      const isProductionSite = typeof window !== 'undefined' && !window.location.hostname.includes('localhost');
+
+      if (isLocalhostAPI && isProductionSite) {
+        setError(
+          'Configuration error: This site is pointing to localhost. ' +
+          'Set NEXT_PUBLIC_API_URL in your Vercel project settings and redeploy.'
+        );
+      } else if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+        setError(`Cannot reach the server at ${API}. Make sure the backend is running and CORS is configured.`);
       } else {
-        setError(err.message || 'An unexpected connection error occurred. Please make sure the backend is active.');
+        setError(err.message || 'An unexpected error occurred. Please try again.');
       }
       setLoading(false);
     }
