@@ -61,3 +61,4 @@ export async function deleteSermon(req: AuthRequest, res: Response): Promise<voi
   await prisma.sermon.delete({ where: { id: req.params.id } });
   res.json({ message: 'Sermon deleted' });
 }
+
