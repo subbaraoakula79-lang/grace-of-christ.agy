@@ -6,9 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -52,7 +51,7 @@ model Sermon {
   speaker      String
   date         DateTime
   duration     String?
-  tags         String[] @default([])
+  tags         String   @default("[]")
   isPublished  Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -76,7 +75,7 @@ model Donation {
   donorName         String
   email             String
   phone             String
-  amount            Decimal  @db.Decimal(12, 2)
+  amount            Float
   currency          String   @default("INR")
   paymentMethod     String
   receiptId         String   @unique
@@ -113,7 +112,7 @@ model AuditLog {
   action     String
   resource   String
   resourceId String?
-  metadata   Json?
+  metadata   String?
   ipAddress  String?
   createdAt  DateTime @default(now())
 
