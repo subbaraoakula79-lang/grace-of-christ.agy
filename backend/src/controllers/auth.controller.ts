@@ -13,10 +13,12 @@ const loginSchema = z.object({
   totpToken: z.string().optional(),
 });
 
+const IS_PROD = process.env.NODE_ENV === 'production';
+
 const REFRESH_COOKIE_OPTS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  secure: IS_PROD,           // Must be true when sameSite is 'none'
+  sameSite: (IS_PROD ? 'none' : 'lax') as 'none' | 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/api/auth',
 };
