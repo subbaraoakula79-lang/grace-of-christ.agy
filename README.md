@@ -50,15 +50,7 @@ npm run dev          # Starts at http://localhost:3000
 
 ---
 
-## 🔐 Default Admin Credentials
-> ⚠️ **Change password immediately after first login!**
 
-| Field    | Value                         |
-|----------|-------------------------------|
-| URL      | http://localhost:3000/admin/login |
-
-
----
 
 ## 🧪 Mock Mode (Development — No Real Accounts Needed)
 
