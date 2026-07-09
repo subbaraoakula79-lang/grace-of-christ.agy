@@ -118,7 +118,7 @@ export default function ContactPage() {
               {/* Map embed */}
               <div style={{ marginTop: '1.5rem', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(16, 185, 129, 0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15309.67!2d82.2475!3d16.9891!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a382fb09063fbbd%3A0xa534db2a6d73e8b6!2sKakinada%2C%20Andhra%20Pradesh!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3827.3!2d82.244258!3d16.9378561!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a3827007b623623%3A0x125ae903c9a7f0aa!2sGrace%20of%20Christ%20church!5e0!3m2!1sen!2sin!4v1720500000000!5m2!1sen!2sin"
                   width="100%" height="220" style={{ border: 0, display: 'block' }}
                   allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
                   title="Grace of Christ Church Location"
