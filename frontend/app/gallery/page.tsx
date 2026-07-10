@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
+import { galleryAPI } from '@/lib/api';
 
 interface GalleryImage {
   id: string;
@@ -18,31 +19,32 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
 
-  const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  // Derive base URL the same way api.ts does, so public gallery and admin
+  // gallery always hit the exact same endpoint regardless of how Vercel's
+  // NEXT_PUBLIC_API_URL env var is set (with or without trailing /api).
+  let API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  if (API && !API.endsWith('/api') && !API.endsWith('/api/')) {
+    API = `${API.replace(/\/+$/, '')}/api`;
+  }
 
   useEffect(() => {
     const fetchImages = async () => {
       setLoading(true);
       try {
-        // Always fetch from API — never use a localStorage cache for gallery display.
-        // The cache was the root cause of deleted images still appearing on mobile:
-        // the API returns [] for an empty gallery which was previously ignored.
-        const res = await fetch(`${API}/gallery?limit=48`, { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          // Accept the fresh list regardless of length (including empty [])
-          setImages(data.images ?? []);
-        }
+        // Use the shared galleryAPI helper (same as admin) so URL construction
+        // is always identical — this was the root cause of public gallery not
+        // showing images while admin gallery did.
+        const res = await galleryAPI.list({ limit: 48 });
+        setImages(res.data.images ?? []);
       } catch (err) {
         console.warn('Gallery fetch failed:', err);
-        // On network failure, show empty rather than stale cached data
         setImages([]);
       } finally {
         setLoading(false);
       }
     };
     fetchImages();
-  }, [API]);
+  }, []);
 
   return (
     <>
