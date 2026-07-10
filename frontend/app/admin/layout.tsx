@@ -20,20 +20,56 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // 'checking' = auth not yet verified, 'ok' = authenticated, 'denied' = redirect pending
+  const [authState, setAuthState] = useState<'checking' | 'ok' | 'denied'>('checking');
+
   useEffect(() => {
-    if (pathname === '/admin/login') return;
+    // Login page never needs an auth check
+    if (pathname === '/admin/login') {
+      setAuthState('ok');
+      return;
+    }
+
     const token = localStorage.getItem('goc_access_token');
     const u = localStorage.getItem('goc_user');
-    if (!token || !u) { router.push('/admin/login'); return; }
+
+    if (!token || !u) {
+      setAuthState('denied');
+      router.replace('/admin/login');
+      return;
+    }
+
     try {
       const parsed = JSON.parse(u) as { name: string; role: string };
+      // Basic sanity: must have name + role
+      if (!parsed.name || !parsed.role) throw new Error('Invalid user data');
       setUser(parsed);
+      setAuthState('ok');
     } catch {
-      router.push('/admin/login');
+      // Corrupt / tampered local storage — force re-login
+      localStorage.removeItem('goc_access_token');
+      localStorage.removeItem('goc_user');
+      setAuthState('denied');
+      router.replace('/admin/login');
     }
   }, [pathname, router]);
 
+  // ── Login page — render as-is (no sidebar, no auth gate) ─────────────────────
   if (pathname === '/admin/login') return <>{children}</>;
+
+  // ── Auth still being verified — render nothing to prevent content flash ───────
+  // This is the key fix: previously children rendered for one frame before the
+  // redirect fired, allowing a brief unauthenticated view of protected content.
+  if (authState === 'checking' || authState === 'denied') {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'var(--space)', color: 'var(--text-secondary)', fontSize: '0.9rem'
+      }}>
+        Verifying session…
+      </div>
+    );
+  }
 
   const handleLogout = async () => {
     const token = localStorage.getItem('goc_access_token');
@@ -47,7 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
     localStorage.removeItem('goc_access_token');
     localStorage.removeItem('goc_user');
-    router.push('/admin/login');
+    router.replace('/admin/login');
   };
 
   return (

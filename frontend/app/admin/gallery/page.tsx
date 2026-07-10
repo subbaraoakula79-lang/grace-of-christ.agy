@@ -74,15 +74,9 @@ export default function AdminGalleryPage() {
     try {
       const res = await galleryAPI.list({ limit: 100 });
       setImages(res.data.images);
-      localStorage.setItem('goc_gallery', JSON.stringify(res.data.images));
     } catch (err) {
       console.error('Failed to fetch gallery images from API', err);
-      const stored = localStorage.getItem('goc_gallery');
-      if (stored) {
-        try {
-          setImages(JSON.parse(stored));
-        } catch {}
-      }
+      setImages([]);
     } finally {
       setLoading(false);
     }
@@ -122,13 +116,18 @@ export default function AdminGalleryPage() {
 
   const deleteImage = async (id: string) => {
     if (!confirm('Delete this image?')) return;
+    // Optimistic update: remove from UI immediately on both desktop and mobile
+    setImages(prev => prev.filter(img => img.id !== id));
     try {
       await galleryAPI.delete(id);
+      // Refetch to sync with server (confirms deletion persisted)
       fetchImages();
     } catch (err: any) {
       console.error('API deletion failed', err);
       const errMsg = err?.response?.data?.error || err?.message || 'Failed to delete image.';
       alert(`Error: ${errMsg}`);
+      // Revert optimistic update on failure
+      fetchImages();
     }
   };
 

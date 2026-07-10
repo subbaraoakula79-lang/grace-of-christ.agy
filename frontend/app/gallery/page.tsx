@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 
 interface GalleryImage {
   id: string;
@@ -14,48 +13,30 @@ interface GalleryImage {
   createdAt: string;
 }
 
-const defaultImages: GalleryImage[] = [];
-
-
 export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
 
-  let API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-  if (API && !API.endsWith('/api') && !API.endsWith('/api/')) {
-    API = `${API.replace(/\/+$/, '')}/api`;
-  }
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsAdmin(!!localStorage.getItem('goc_access_token'));
-    }
-  }, []);
+  const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
     const fetchImages = async () => {
+      setLoading(true);
       try {
-        const stored = localStorage.getItem('goc_gallery');
-        let currentImages = defaultImages;
-        if (stored) {
-          currentImages = JSON.parse(stored);
-        } else {
-          localStorage.setItem('goc_gallery', JSON.stringify(defaultImages));
-        }
-        setImages(currentImages);
-
-        const res = await fetch(`${API}/gallery?limit=48`);
+        // Always fetch from API — never use a localStorage cache for gallery display.
+        // The cache was the root cause of deleted images still appearing on mobile:
+        // the API returns [] for an empty gallery which was previously ignored.
+        const res = await fetch(`${API}/gallery?limit=48`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
-          if (data.images && data.images.length > 0) {
-            setImages(data.images);
-            localStorage.setItem('goc_gallery', JSON.stringify(data.images));
-          }
+          // Accept the fresh list regardless of length (including empty [])
+          setImages(data.images ?? []);
         }
       } catch (err) {
-        console.warn('Backend API offline, using local storage fallback.', err);
+        console.warn('Gallery fetch failed:', err);
+        // On network failure, show empty rather than stale cached data
+        setImages([]);
       } finally {
         setLoading(false);
       }
@@ -181,11 +162,6 @@ export default function GalleryPage() {
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.8, margin: 0 }}>
                   No gallery images available yet. Please check back later.
                 </p>
-                {isAdmin && (
-                  <Link href="/admin/dashboard" className="btn-spatial btn-outline" style={{ marginTop: '0.5rem' }}>
-                    Go to Admin Dashboard
-                  </Link>
-                )}
               </div>
             </div>
           )}
