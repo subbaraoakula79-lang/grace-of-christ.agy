@@ -28,7 +28,10 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
       try {
-        const res = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
+        // Must use the api instance (withCredentials: true) so the httpOnly
+        // refresh cookie is included in the cross-origin request to Render.
+        // Using bare axios.post() was the root cause — cookie was never sent.
+        const res = await api.post('/auth/refresh');
         const { accessToken } = res.data;
         localStorage.setItem('goc_access_token', accessToken);
         original.headers.Authorization = `Bearer ${accessToken}`;
