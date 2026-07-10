@@ -26,8 +26,8 @@ app.use(
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com', 'https://firebasestorage.googleapis.com', 'https://img.youtube.com', 'http://localhost:5000', 'http://localhost:3000'],
-        connectSrc: ["'self'", 'https://api.cloudinary.com', 'https://res.cloudinary.com', 'https://firebasestorage.googleapis.com'],
+        imgSrc: ["'self'", 'data:', 'https://res.cloudinary.com', 'https://img.youtube.com', 'http://localhost:5000', 'http://localhost:3000'],
+        connectSrc: ["'self'", 'https://api.cloudinary.com', 'https://res.cloudinary.com'],
         fontSrc: ["'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
         frameSrc: ["'self'", 'https://www.youtube.com'],
         formAction: ["'self'"],
@@ -60,9 +60,8 @@ const corsOptions: cors.CorsOptions = {
     
     const isVercelPreview = cleanOrigin && (cleanOrigin.endsWith('.vercel.app') || cleanOrigin.includes('.vercel.app'));
     const isCustomDomain = cleanOrigin && (cleanOrigin.endsWith('graceofchrist.org') || cleanOrigin.includes('graceofchrist.org'));
-    const isFirebaseHost = cleanOrigin && (cleanOrigin.endsWith('.web.app') || cleanOrigin.endsWith('.firebaseapp.com'));
 
-    if (!origin || allowed.has(cleanOrigin) || isVercelPreview || isCustomDomain || isFirebaseHost) {
+    if (!origin || allowed.has(cleanOrigin) || isVercelPreview || isCustomDomain) {
       callback(null, true);
     } else {
       console.warn(`CORS blocked: ${origin}`);
