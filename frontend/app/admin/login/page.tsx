@@ -68,7 +68,9 @@ export default function AdminLoginPage() {
           'Set NEXT_PUBLIC_API_URL in your Vercel project settings and redeploy.'
         );
       } else if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-        setError(`Cannot reach the server at ${API}. Make sure the backend is running and CORS is configured.`);
+        // Render free tier spins down after 15 min of inactivity.
+        // First request after sleep causes a connection timeout — not a CORS issue.
+        setError('The server is starting up (Render cold start). Please wait 30–60 seconds and try again.');
       } else {
         setError(err.message || 'An unexpected error occurred. Please try again.');
       }
